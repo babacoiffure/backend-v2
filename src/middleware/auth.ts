@@ -9,8 +9,19 @@ export const authenticateJWT = async (
     next: NextFunction
 ) => {
     // check for wild routes
-    if (serverConfigs.wildRoutes.some((x) => req.path.includes(x)))
+    if (serverConfigs.wildRoutes.some((x) => req.path.includes(x))) {
+        const { valid, decoded, expired } = verifyAccessToken(
+            req?.cookies["accessToken"]
+        );
+
+        console.log(valid, decoded);
+        if (valid && decoded) {
+            req.headers.userId = decoded.userId;
+            req.headers.userType = decoded.userType;
+        }
+
         return next();
+    }
 
     // check for accessToken
     let accessToken = req.cookies["accessToken"];
