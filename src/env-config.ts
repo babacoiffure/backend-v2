@@ -52,6 +52,7 @@ export const serverConfigs = Object.freeze({
         "/sign-in",
         "/verify-email-with-otp",
         "/sign-up",
+        "/sign-out",
         "/health-check",
         "/forgot-password",
         "/verify-identity-with-otp",

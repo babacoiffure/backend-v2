@@ -5,12 +5,14 @@ import { handleAsyncHttp } from "../middleware/controller";
 
 import { configDotenv } from "dotenv";
 import { serverConfigs, serverENV } from "../env-config";
+import { destroyImage } from "../libraries/cloudinary";
 import { sendEmail } from "../libraries/mailer";
 import {
     createProviderExpressAccount,
     getAccountLink,
 } from "../libraries/stripe";
 import { ErrorHandler } from "../middleware/error";
+import { getUserById } from "../service/user.service";
 import {
     generateAccessToken,
     generateRefreshToken,
@@ -287,4 +289,28 @@ export const handleResetPassword = handleAsyncHttp(async (req, res) => {
     user.password = await bcrypt.hash(password, 10);
     await user.save();
     res.success("Password reset successful", null, 200);
+});
+
+export const handleChangePassword = handleAsyncHttp(async (req, res) => {
+    const { password } = req.body;
+    await User.findByIdAndUpdate(req.headers.userId as string, {
+        password: await bcrypt.hash(password, 10),
+    });
+    res.success("Password changed", null, 200);
+});
+export const handleDeleteAccount = handleAsyncHttp(async (req, res) => {
+    const { password } = req.body;
+    const user = await getUserById(req.headers.userId as string, {
+        select: "+password",
+    });
+    if (!(await bcrypt.compare(password, user.password))) {
+        return res.error("Password not matched");
+    }
+
+    if (user.avatar?.publicId) {
+        await destroyImage(user.avatar?.publicId);
+    }
+
+    await User.findByIdAndDelete(req.headers.userId);
+    res.success("Password changed", null, 200);
 });
