@@ -7,12 +7,6 @@ const fields = {
         ref: "User",
         required: true,
     },
-    workingDays: [
-        {
-            type: String,
-            enums: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
-        },
-    ],
     availableAt: {
         type: String,
         enum: ["Provider", "Client", "No Matter"],
@@ -24,10 +18,6 @@ const fields = {
             required: true,
         },
     ],
-    everydayRepeatTimePeriod: {
-        type: Boolean,
-        required: true,
-    },
 };
 
 // Exporting model

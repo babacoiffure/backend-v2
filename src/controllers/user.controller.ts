@@ -7,6 +7,9 @@ export const handleUpdateUserInfo = handleAsyncHttp(async (req, res) => {
     let updatedInfo = {
         ...req.body,
     };
+    if (updatedInfo.email) {
+        delete updatedInfo["email"];
+    }
     if (req.body.name) {
         updatedInfo.uid = await generateUniqueUID(req.body.name);
     }

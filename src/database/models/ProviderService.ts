@@ -59,6 +59,14 @@ const fields = {
             required: true,
         },
     ],
+    isAddonsActive: {
+        type: Boolean,
+        required: true,
+    },
+    isSizeBasedAddonsActive: {
+        type: Boolean,
+        required: true,
+    },
     addons: [
         {
             isActive: {

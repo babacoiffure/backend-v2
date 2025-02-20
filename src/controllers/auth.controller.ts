@@ -68,7 +68,7 @@ export const handleCredentialSignIn = handleAsyncHttp(async (req, res) => {
         "+otp",
     ]);
     if (!user) {
-        return res.error("User doesn't exists", 400);
+        return res.error("Your email/password is incorrect", 400);
     }
 
     if (!user.emailVerified) {
@@ -101,6 +101,43 @@ export const handleCredentialSignIn = handleAsyncHttp(async (req, res) => {
     });
     res.success("Login successful", await User.findById(user._id), 200);
 });
+
+export const handleChangeEmailRequest = handleAsyncHttp(async (req, res) => {
+    const { newEmail } = req.body;
+    const user = await getUserById(req.headers.userId as string);
+    const OTP = generateOTP(5);
+
+    const mailOptions = {
+        to: newEmail,
+        subject: "Email verification OTP",
+        html: `<div>
+        <p>Your <b>${serverConfigs.app.name}</b> email changing OTP is</p>
+        <br>
+        <h1>${OTP}</h1>
+        </div>`,
+    };
+    await sendEmail(mailOptions);
+    user.OTP = OTP;
+    await user.save();
+    res.success(
+        "An OTP sent to your new email. Verify your new email with that OTP"
+    );
+});
+export const handleChangeEmailRequestVerify = handleAsyncHttp(
+    async (req, res) => {
+        const { OTP, newEmail } = req.body;
+        const user = await getUserById(req.headers.userId as string, {
+            select: "+OTP",
+        });
+        if (!user.OTP == OTP) {
+            return res.error("Wrong OTP", 400);
+        }
+        user.email = newEmail;
+        user.OTP = "";
+        await user.save();
+        res.success("Your email address changed");
+    }
+);
 
 export const handleVerifyEmailWithOTP = handleAsyncHttp(async (req, res) => {
     const { OTP, email, userType } = req.body;
