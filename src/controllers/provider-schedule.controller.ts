@@ -1,6 +1,8 @@
 import ProviderSchedule from "../database/models/ProviderSchedule";
 import User from "../database/models/User";
 import { handleAsyncHttp } from "../middleware/controller";
+import queryHelper from "../utils/query-helper";
+import { getDayMatchQuery } from "../utils/utils";
 
 export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
     const user = await User.findById(req.body.userId);
@@ -9,6 +11,7 @@ export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
     }
     let providerSchedule = await ProviderSchedule.findOne({
         userId: req.params.userId,
+        scheduleDate: getDayMatchQuery(req.body.scheduleDate),
     });
     if (!providerSchedule) {
         providerSchedule = await ProviderSchedule.create(req.body);
@@ -22,12 +25,9 @@ export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
     res.success("Provider's schedule updated.", providerSchedule);
 });
 
-export const handleGetProviderSchedule = handleAsyncHttp(async (req, res) => {
-    const schedule = await ProviderSchedule.findOne({
-        userId: req.params.userId,
-    });
-    if (!schedule) {
-        return res.error("Not yet saved", 404);
+export const handleGetProviderScheduleList = handleAsyncHttp(
+    async (req, res) => {
+        const schedule = await queryHelper(ProviderSchedule, req.query);
+        res.success("List", schedule);
     }
-    res.success("Schedule", schedule);
-});
+);

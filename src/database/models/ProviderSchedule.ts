@@ -2,6 +2,10 @@ import mongoose, { model, Schema } from "mongoose";
 
 // Insert table fields here
 const fields = {
+    scheduleDate: {
+        type: Date,
+        required: true,
+    },
     userId: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
