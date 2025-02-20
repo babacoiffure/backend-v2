@@ -133,9 +133,12 @@ export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
 export const handleChangeEmailRequestVerify = handleAsyncHttp(
     async (req, res) => {
         const { OTP, newEmail } = req.body;
-        const user = await getUserById(req.headers.userId as string, {
-            select: "+OTP",
-        });
+        const user = await User.findById(req.headers.userId as string).select(
+            "+OTP"
+        );
+        if (!user) {
+            throw new ErrorHandler("User not found", 404);
+        }
         if (!user.OTP == OTP) {
             return res.error("Wrong OTP", 400);
         }
@@ -344,9 +347,12 @@ export const handleChangePassword = handleAsyncHttp(async (req, res) => {
 });
 export const handleDeleteAccount = handleAsyncHttp(async (req, res) => {
     const { password } = req.body;
-    const user = await getUserById(req.headers.userId as string, {
-        select: "+password",
-    });
+    const user = await User.findById(req.headers.userId as string).select(
+        "+password"
+    );
+    if (!user) {
+        return res.error("User not found", 400);
+    }
     if (!(await bcrypt.compare(password, user.password))) {
         return res.error("Password not matched");
     }
