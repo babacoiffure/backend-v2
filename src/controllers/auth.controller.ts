@@ -123,6 +123,13 @@ export const handleChangeEmailRequest = handleAsyncHttp(async (req, res) => {
         "An OTP sent to your new email. Verify your new email with that OTP"
     );
 });
+export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
+    res.success("Auth details", {
+        isAuthValid: Boolean(req.headers?.userId),
+        userId: req.headers?.userId,
+        userType: req.headers?.userType,
+    });
+});
 export const handleChangeEmailRequestVerify = handleAsyncHttp(
     async (req, res) => {
         const { OTP, newEmail } = req.body;

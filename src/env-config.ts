@@ -57,5 +57,6 @@ export const serverConfigs = Object.freeze({
         "/forgot-password",
         "/verify-identity-with-otp",
         "/reset-password",
+        "/check-auth",
     ],
 });
