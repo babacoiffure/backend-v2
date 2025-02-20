@@ -13,8 +13,6 @@ export const authenticateJWT = async (
         const { valid, decoded, expired } = verifyAccessToken(
             req?.cookies["accessToken"]
         );
-
-        console.log(valid, decoded);
         if (valid && decoded) {
             req.headers.userId = decoded.userId;
             req.headers.userType = decoded.userType;

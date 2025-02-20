@@ -69,7 +69,6 @@ export const handleProposeForRescheduleAppointment = handleAsyncHttp(
         appointment.rescheduleProposals.push(proposal);
         await appointment.save();
         //TODO: have to check for insertion
-        console.log(appointment);
         if (proposal.from === "Provider") {
             await sendUserNotification(
                 appointment.providerId.toString(),

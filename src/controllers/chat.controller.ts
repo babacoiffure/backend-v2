@@ -63,7 +63,6 @@ export const handleDeleteChatMessage = handleAsyncHttp(async (req, res) => {
     res.success("message deleted");
 });
 export const handleGetChatList = handleAsyncHttp(async (req, res) => {
-    console.log("ERO");
     res.success("Chat list", await queryHelper(Chat, req.query));
 });
 export const handleGetChatMessageList = handleAsyncHttp(async (req, res) => {
