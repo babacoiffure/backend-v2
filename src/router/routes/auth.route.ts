@@ -28,5 +28,5 @@ authRouter.post("/forgot-password", handleForgotPassword);
 authRouter.post("/verify-identity-with-otp", handleVerifyOTP);
 authRouter.post("/reset-password", handleResetPassword);
 authRouter.get("/reissue-auth-token", handleReissueToken);
-authRouter.get("/sign-out", handleSignOut);
+authRouter.post("/sign-out", handleSignOut);
 authRouter.get("/check-auth", handleCheckAuth);
