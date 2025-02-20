@@ -19,6 +19,6 @@ export const validate = (
                 }));
             }
             console.log(err);
-            return res.error("Validation failed", String(err), 409);
+            return res.error("Validation failed");
         }
     });
