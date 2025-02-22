@@ -48,7 +48,7 @@ export const handleCredentialSignUp = handleAsyncHttp(async (req, res) => {
         to: email,
         subject: "Email verification OTP",
         html: `<div>
-        <p>Your <b>${serverConfigs.app.name}</b> password resetting OTP is</p>
+        <p>Your <b>${serverConfigs.app.name}</b> Email verification OTP is</p>
         <br>
         <h1>${OTP}</h1>
         </div>`,

@@ -1,2 +1,2 @@
 [] - params and body check
-[] - payment integration
+[x] - payment integration
