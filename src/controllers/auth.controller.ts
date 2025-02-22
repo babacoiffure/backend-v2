@@ -339,12 +339,23 @@ export const handleResetPassword = handleAsyncHttp(async (req, res) => {
 });
 
 export const handleChangePassword = handleAsyncHttp(async (req, res) => {
-    const { password } = req.body;
-    await User.findByIdAndUpdate(req.headers.userId as string, {
-        password: await bcrypt.hash(password, 10),
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.headers.userId).select("+password");
+    if (!user) {
+        return res.error("User not found");
+    }
+    const isMatched = bcrypt.compareSync(oldPassword, user?.password);
+    if (!isMatched) {
+        return res.error("Incorrect old password");
+    }
+    await User.findByIdAndUpdate(user._id, {
+        password: await bcrypt.hash(newPassword, 10),
     });
+
     res.success("Password changed", null, 200);
 });
+
 export const handleDeleteAccount = handleAsyncHttp(async (req, res) => {
     const { password } = req.body;
     const user = await User.findById(req.headers.userId as string).select(
