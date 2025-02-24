@@ -6,7 +6,7 @@ const fields = {
         type: Date,
         required: true,
     },
-    userId: {
+    providerId: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
         required: true,

@@ -1,20 +1,24 @@
 import ProviderSchedule from "../database/models/ProviderSchedule";
-import User from "../database/models/User";
 import { handleAsyncHttp } from "../middleware/controller";
 import queryHelper from "../utils/query-helper";
 import { getDayMatchQuery } from "../utils/utils";
 
 export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
-    const user = await User.findById(req.body.userId);
-    if (user?.userType !== "Provider") {
+    const { userId, userType } = req.headers;
+
+    if (userType !== "Provider") {
         return res.error("You are not a provider");
     }
     let providerSchedule = await ProviderSchedule.findOne({
-        userId: req.params.userId,
+        providerId: userId,
         scheduleDate: getDayMatchQuery(req.body.scheduleDate),
     });
+
     if (!providerSchedule) {
-        providerSchedule = await ProviderSchedule.create(req.body);
+        providerSchedule = await ProviderSchedule.create({
+            ...req.body,
+            providerId: userId,
+        });
     } else {
         providerSchedule = await ProviderSchedule.findByIdAndUpdate(
             providerSchedule._id,
@@ -22,7 +26,7 @@ export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
             { new: true, runValidators: true }
         );
     }
-    res.success("Provider's schedule updated.", providerSchedule);
+    res.success("Provider's schedule", providerSchedule);
 });
 
 export const handleGetProviderScheduleList = handleAsyncHttp(

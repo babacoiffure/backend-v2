@@ -13,3 +13,29 @@ export const connectDB = async () => {
         console.log(" 🔥 DB Connection error:", err);
     }
 };
+
+function flattenObject(
+    obj: Record<string, any>,
+    prefix: string = ""
+): Record<string, any> {
+    let result: Record<string, any> = {};
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let newKey = prefix ? `${prefix}.${key}` : key;
+            if (
+                typeof obj[key] === "object" &&
+                obj[key] !== null &&
+                !Array.isArray(obj[key])
+            ) {
+                Object.assign(result, flattenObject(obj[key], newKey));
+            } else {
+                result[newKey] = obj[key];
+            }
+        }
+    }
+    return result;
+}
+
+export const updateObject = (obj: Record<string, any>) => {
+    $set: flattenObject(obj);
+};
