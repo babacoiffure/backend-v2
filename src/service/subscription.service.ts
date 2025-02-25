@@ -12,7 +12,8 @@ export const getSubscriptionById = async (id: string) => {
 
 export const giveSubscriptionToUser = async (
     userId: string,
-    subscriptionId: string
+    subscriptionId: string,
+    stripeData: any
 ) => {
     const subscription = await getSubscriptionById(subscriptionId);
     const user = await getUserById(userId);
@@ -21,6 +22,7 @@ export const giveSubscriptionToUser = async (
     }
     const issuedAt = Date.now();
     return await SubscriptionOwner.create({
+        stripeData,
         userId,
         issuedAt,
         expireAt:
@@ -33,16 +35,22 @@ export const giveSubscriptionToUser = async (
 };
 
 export const checkHasValidSubscription = async (userId: string) => {
-    const subs = await getUserSubscription(userId);
-
-    return isBefore(Date.now(), subs?.expireAt);
+    const subs = await getUserSubscription(userId, false);
+    return {
+        subscription: subs,
+        isExpired: subs ? isBefore(Date.now(), subs?.expireAt) : undefined,
+    };
 };
 
-export const getUserSubscription = async (userId: string) => {
+export const getUserSubscription = async (
+    userId: string,
+    throwError = true
+) => {
     const subs = await SubscriptionOwner.findOne({ userId }).sort({
         createdAt: -1,
     });
-    if (!subs) {
+    console.log(!subs, throwError);
+    if (!subs && throwError) {
         throw new ErrorHandler("No subscription found for this user", 400);
     }
     return subs;

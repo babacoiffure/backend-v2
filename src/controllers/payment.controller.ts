@@ -78,6 +78,8 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
             payment = await Payment.create({
                 appointmentId,
                 currency,
+                totalAmount,
+                providerServiceId: providerService._id,
                 dueAmount: totalAmount - payAmount,
                 paymentMode:
                     appointmentPaymentMode === "Pre-deposit"
@@ -85,9 +87,9 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
                         : "Regular",
             });
             const intent = await generatePaymentIntent(payAmount, currency, {
-                transfer_data: {
-                    destination: provider.providerSettings?.stripeAccountId,
-                },
+                // transfer_data: {
+                //     destination: provider.providerSettings?.stripeAccountId,
+                // },
             });
             return res.success("Payment intent created", {
                 clientSecret: intent.client_secret,
@@ -99,9 +101,28 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
             // pre-deposit 2nd phase
             payAmount = payment.dueAmount;
             const intent = await generatePaymentIntent(payAmount, currency, {
-                transfer_data: {
-                    destination: provider.providerSettings?.stripeAccountId,
-                },
+                // transfer_data: {
+                //     destination: provider.providerSettings?.stripeAccountId,
+                // },
+            });
+            return res.success("Payment intent created", {
+                clientSecret: intent.client_secret,
+                payment,
+            });
+        } else {
+            if (appointmentPaymentMode === "Pre-deposit") {
+                payAmount = isAddonSelected
+                    ? 20
+                    : getPercentage(20, totalAmount);
+            } else {
+                payAmount = totalAmount;
+            }
+
+            // has payment intent but that was not successful
+            const intent = await generatePaymentIntent(payAmount, currency, {
+                // transfer_data: {
+                //     destination: provider.providerSettings?.stripeAccountId,
+                // },
             });
             return res.success("Payment intent created", {
                 clientSecret: intent.client_secret,
@@ -160,7 +181,11 @@ export const handleSuccessfulSubscriptionPayment = handleAsyncHttp(
         const { stripeData, intentId, userId, subscriptionId } = req.body;
         const paymentIntent = await getPaymentIntentStatus(intentId);
         if (paymentIntent.status === "succeeded") {
-            const subs = await giveSubscriptionToUser(userId, subscriptionId);
+            const subs = await giveSubscriptionToUser(
+                userId,
+                subscriptionId,
+                stripeData
+            );
             res.success(getStatusMessage(paymentIntent.status), subs);
         } else {
             res.success(

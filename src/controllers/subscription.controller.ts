@@ -1,9 +1,6 @@
 import Subscription from "../database/models/Subscription";
 import { handleAsyncHttp } from "../middleware/controller";
-import {
-    checkHasValidSubscription,
-    getUserSubscription,
-} from "../service/subscription.service";
+import { checkHasValidSubscription } from "../service/subscription.service";
 import queryHelper from "../utils/query-helper";
 
 export const handleCreateSubscription = handleAsyncHttp(async (req, res) => {
@@ -43,17 +40,6 @@ export const handleGetSubscriptionList = handleAsyncHttp(async (req, res) => {
 export const handleGetSubscriptionValidity = handleAsyncHttp(
     async (req, res) => {
         const data = await checkHasValidSubscription(req.params.id);
-        res.success(
-            "Validity",
-            {
-                isValid: data,
-                subscription: await getUserSubscription(req.params.id),
-            },
-            200
-        );
+        res.success("Subscription status", data, 200);
     }
 );
-
-export const handleGetUserSubscription = handleAsyncHttp(async (req, res) => {
-    res.success("Subs", await getUserSubscription(req.params.id), 200);
-});

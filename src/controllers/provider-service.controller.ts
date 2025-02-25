@@ -25,3 +25,12 @@ export const handleGetProviderServiceList = handleAsyncHttp(
         res.success("List", await queryHelper(ProviderService, req.query));
     }
 );
+
+export const handleGetProviderServiceById = handleAsyncHttp(
+    async (req, res) => {
+        res.success(
+            "Provider service",
+            await ProviderService.findById(req.params.id)
+        );
+    }
+);

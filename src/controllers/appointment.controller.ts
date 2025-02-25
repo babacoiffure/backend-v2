@@ -143,10 +143,11 @@ export const handleRejectAppointment = handleAsyncHttp(async (req, res) => {
 });
 
 export const handleGetAppointmentList = handleAsyncHttp(async (req, res) => {
-    res.success(
-        "Appointment list",
-        await queryHelper(Appointment, req.query, {
-            populate: ["clientId", "providerId"],
-        })
-    );
+    const query: any = {
+        ...req.query,
+    };
+    if (req.query?.scheduleDate) {
+        query["scheduleDate"] = getDayMatchQuery(req.query.scheduleDate as any);
+    }
+    res.success("Appointment list", await queryHelper(Appointment, query));
 });

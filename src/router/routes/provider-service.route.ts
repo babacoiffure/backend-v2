@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
     handleCreateProviderService,
     handleDeleteProviderService,
+    handleGetProviderServiceById,
     handleGetProviderServiceList,
     handleUpdateProviderService,
 } from "../../controllers/provider-service.controller";
@@ -12,3 +13,4 @@ providerServiceRouter.post("/create", handleCreateProviderService);
 providerServiceRouter.patch("/update/:id", handleUpdateProviderService);
 providerServiceRouter.delete("/delete/:id", handleDeleteProviderService);
 providerServiceRouter.get("/list", handleGetProviderServiceList);
+providerServiceRouter.get("/by-id/:id", handleGetProviderServiceById);

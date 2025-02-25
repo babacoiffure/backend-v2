@@ -27,10 +27,18 @@ const fields = {
     },
     status: {
         type: String,
-        enums: ["Accepted", "Pending", "Rejected"],
+        enums: ["Accepted", "Pending", "Rejected", "Completed"],
         default: "Pending",
     },
-
+    serviceProvideAt: {
+        type: String,
+        enum: ["Provider", "Client", "No Matter"],
+        required: true,
+    },
+    serviceProvideLocation: {
+        type: String,
+        default: null,
+    },
     selectedAddons: [
         {
             name: {

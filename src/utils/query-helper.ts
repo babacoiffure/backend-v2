@@ -1,30 +1,35 @@
-export default async function (queryModel: any, queries?: any, options?: any) {
+import mongoose from "mongoose";
+
+export default async function (
+    queryModel: any,
+    queries?: any,
+    options?: Record<string, any>
+) {
     let operatorParams = ["_lt", "_gt", "_ne", "_gte", "_lte"];
     let sortParams = ["_sort", "_order"];
     let regExParams = ["_like"];
+    const mongooseOperationParams = ["_populate", "_projection"];
     // let relationalParams = ['_expand','_embed'];
     let globalParams = ["_keyword", "_q"];
     // let nestedParams = ["."];
-    const excludeInstance = ["Number", "Date"];
-    const excludePaths = ["_id", "created_at", "updated_at", "__v"];
+    // const excludeInstance = ["Number", "Date"];
+    // const excludePaths = ["_id", "created_at", "updated_at", "__v"];
 
-    const paths = Object.values(queryModel.schema.paths).reduce(
-        (acc: any, x: any) => {
-            if (
-                !excludePaths.includes(x.path) &&
-                !excludeInstance.includes(x.instance)
-            ) {
-                return [...acc, x.path];
-            }
-            return Array.from(acc);
-        },
-        []
+    const schemaKeyTypes: any = {};
+
+    Object.entries(queryModel.schema.paths).forEach(
+        ([key, value]: [string, any]) => {
+            schemaKeyTypes[key] = value.instance;
+        }
     );
 
     let searchQuery: any = {};
     let sortQuery: Record<any, any> = {};
     let paginationQuery: any = {};
     let queryCopy = structuredClone(queries);
+    // fist_label_populate only
+    let populate: string[] = [];
+    let projection: string[] = [];
 
     Object.entries(queryCopy).map(([key, value]: [string, any]) => {
         if (regExParams.find((x) => key.includes(x))) {
@@ -34,7 +39,15 @@ export default async function (queryModel: any, queries?: any, options?: any) {
                 $options: "i",
             };
         } else if (!key.startsWith("_")) {
-            searchQuery[key] = value;
+            // exact match filter
+            const keyType = schemaKeyTypes[key];
+            if (!keyType) return;
+            if (keyType === "ObjectId") {
+                if (!mongoose.Types.ObjectId.isValid(value)) return;
+                searchQuery[key] = new mongoose.Types.ObjectId(value);
+            } else {
+                searchQuery[key] = value;
+            }
         } else if (operatorParams.includes(key)) {
             let operatorKey = key.substring(1);
             searchQuery[`$${operatorKey}`] = value;
@@ -55,8 +68,23 @@ export default async function (queryModel: any, queries?: any, options?: any) {
             //         [path]: { $regex: value, $options: "i" },
             //     }));
             // }
+        } else if (mongooseOperationParams.includes(key)) {
+            // _populate | _projection
+            if (key === "_populate") {
+                populate = String(value)
+                    .split(",")
+                    .concat(options?.populate)
+                    .filter((x) => x !== undefined);
+            } else if (key === "_projection") {
+                projection = String(value)
+                    .split(",")
+                    .concat(options?.projection)
+                    .filter((x) => x !== undefined);
+            }
         }
     });
+
+    console.log(projection);
 
     const limit = Number(queryCopy._limit ?? 10);
     const page = Number(queryCopy._page ?? 1);
@@ -71,7 +99,10 @@ export default async function (queryModel: any, queries?: any, options?: any) {
         };
     }
     const list = await queryModel
-        .find({ ...searchQuery }, undefined, options)
+        .find({ ...searchQuery }, projection, {
+            ...options,
+            populate,
+        })
         .limit(paginationQuery.limit)
         .skip(paginationQuery.skip)
         .sort(sortQuery);
