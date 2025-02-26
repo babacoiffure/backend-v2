@@ -49,6 +49,10 @@ const fields = {
         type: Boolean,
         default: false,
     },
+    lastSeen: {
+        type: Date,
+        default: Date.now(),
+    },
     providerSettings: {
         appointmentMode: {
             type: String,

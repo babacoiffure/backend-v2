@@ -15,10 +15,13 @@ const fields = {
     status: {
         type: String,
         enums: ["Paid", "Ongoing", "Pending"],
+        required: true,
+        default: "Pending",
     },
     paymentMode: {
         type: String,
         enums: ["Regular", "Pre-deposit"],
+        required: true,
     },
     currency: {
         type: String,

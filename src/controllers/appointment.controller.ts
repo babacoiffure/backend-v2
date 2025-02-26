@@ -12,14 +12,12 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
     const isExists = await Appointment.findOne({
         scheduleDate: getDayMatchQuery(req.body.scheduleDate),
         timePeriod: req.body.timePeriod,
-        status: "Accepted",
     });
-    if (isExists) {
+    if (isExists?.status === "Accepted") {
         return res.error("The timePeriod of this schedule already taken.", 400);
     }
 
     const provider = await User.findById(req.body.providerId);
-    const appointmentMode = provider?.providerSettings?.appointmentMode;
     // if (appointmentMode === "Pre-deposit") {
     //     // already payment done
     //     const payment = await Payment.findOne({
@@ -43,7 +41,8 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
     // }
 
     const appointment = await Appointment.create({
-        status: appointmentMode === "Confirmation" ? "Pending" : "Accepted",
+        status: "Pending",
+        paymentMode: provider?.providerSettings?.appointmentMode,
         ...req.body,
     });
     await sendUserNotification(
@@ -56,7 +55,12 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
         "You have a new appointment",
         appointment
     );
-    res.success("Appointment created", appointment);
+    res.success(
+        "Appointment created",
+        await Appointment.findById(appointment._id, null, {
+            populate: ["providerId"],
+        })
+    );
 });
 
 export const handleProposeForRescheduleAppointment = handleAsyncHttp(

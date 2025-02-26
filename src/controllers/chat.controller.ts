@@ -6,7 +6,7 @@ import { socketServer } from "../server";
 import { sendUserNotification } from "../service/notification.service";
 import queryHelper from "../utils/query-helper";
 export const handleGetChatByUserIds = handleAsyncHttp(async (req, res) => {
-    const query = { userIds: req.params.uidPair.split("-") };
+    const query = { userIds: req.params.uidPair.split(",") };
     let chat = await Chat.findOne(query);
     if (!chat) {
         chat = await Chat.create(query);
@@ -14,8 +14,18 @@ export const handleGetChatByUserIds = handleAsyncHttp(async (req, res) => {
     res.success("Chat conversation", chat);
 });
 
+export const handleGetChatById = handleAsyncHttp(async (req, res) => {
+    res.success(
+        "Chat",
+        await Chat.findById(req.params.id, null, {
+            populate: ["userIds", "lastMessageId"],
+        })
+    );
+});
+
 export const handleSendChatMessage = handleAsyncHttp(async (req, res) => {
-    const { chatId, content, senderId, type } = req.body;
+    const { chatId, content, senderId } = req.body;
+    console.log(req.body);
     const chat = await Chat.findById(chatId);
     if (!chat) {
         return res.error("Chat not found", 404);
@@ -24,13 +34,18 @@ export const handleSendChatMessage = handleAsyncHttp(async (req, res) => {
         chatId,
         senderId,
         content,
-        type,
     });
-    socketServer.emit(chatEvents.chatNewMessage(chatId), message);
+    const newMessage = await ChatMassage.findById(message._id, null, {
+        populate: ["senderId"],
+    });
+    if (!newMessage) return res.error("No message");
+    chat.lastMessageId = newMessage._id;
+    await chat.save();
+    socketServer.emit(chatEvents.chatNewMessage(chatId), newMessage);
     // send notification by socket
     let receiverId = getReceiverId(senderId, chat.userIds as any);
-    await sendUserNotification(receiverId, "New message", message);
-    res.success("message sent", message);
+    await sendUserNotification(receiverId, "New Message", newMessage);
+    res.success("newMessage sent", newMessage);
 });
 export const handleEditChatMessage = handleAsyncHttp(async (req, res) => {
     let message = await ChatMassage.findByIdAndUpdate(req.params.id);

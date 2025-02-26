@@ -1,7 +1,8 @@
 import { Router } from "express";
 import {
     handleCreateAppointmentPaymentIntent,
-    handleCreateSubscriptionPaymentIntent,
+    handleCreateCheckoutSession,
+    handleCreateSubscriptionPlanPaymentIntent,
     handleSuccessfulAppointmentPayment,
     handleSuccessfulSubscriptionPayment,
 } from "../../controllers/payment.controller";
@@ -19,9 +20,11 @@ paymentRouter.post(
 
 paymentRouter.post(
     "/subscription-payment-intent/create",
-    handleCreateSubscriptionPaymentIntent
+    handleCreateSubscriptionPlanPaymentIntent
 );
 paymentRouter.post(
     "/subscription-payment-intent/success",
     handleSuccessfulSubscriptionPayment
 );
+
+paymentRouter.post("/create-checkout-session", handleCreateCheckoutSession);

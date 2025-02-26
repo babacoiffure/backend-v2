@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { serverENV } from "../env-config";
 
-const stripe = new Stripe(serverENV.STRIPE_SECRET_KEY);
+export const stripe = new Stripe(serverENV.STRIPE_SECRET_KEY);
 
 export const generatePaymentIntent = async (
     amount: number,
@@ -9,8 +9,10 @@ export const generatePaymentIntent = async (
     options?: any
 ) => {
     return await stripe.paymentIntents.create({
-        amount,
+        amount: amount,
         currency,
+        automatic_payment_methods: { enabled: true },
+        // payment_method_types: ["card", "google_pay", "apple_pay"],
         ...options,
     });
 };
@@ -53,3 +55,60 @@ export const getStatusMessage = (status: string) => {
             return "Unknown payment status.";
     }
 };
+
+export async function createProductAndPrice({
+    name,
+    priceAmount,
+    priceCurrency,
+    interval,
+    intervalCount,
+}: {
+    name: string;
+    priceAmount: number;
+    priceCurrency: "eur" | "usd" | string;
+    interval: "month" | "day" | "week" | "year";
+    intervalCount: number;
+}) {
+    const product = await stripe.products.create({
+        name: name,
+    });
+
+    const price = await stripe.prices.create({
+        unit_amount: priceAmount,
+        currency: priceCurrency,
+        recurring: { interval, interval_count: intervalCount },
+        product: product.id,
+    });
+    return {
+        product,
+        price,
+    };
+}
+
+// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+// server.post("/webhook", express.raw({ type: "application/json" }), (req, res) => {
+//   let event;
+//   try {
+//     event = stripe.webhooks.constructEvent(
+//       req.body,
+//       req.headers["stripe-signature"],
+//       endpointSecret
+//     );
+//   } catch (err) {
+//     console.error("Webhook signature verification failed.", err);
+//     return res.sendStatus(400);
+//   }
+
+//   switch (event.type) {
+//     case "invoice.payment_succeeded":
+//       console.log("Subscription Payment Successful");
+//       break;
+//     case "customer.subscription.deleted":
+//       console.log("Subscription Canceled");
+//       break;
+//     default:
+//       console.log(`Unhandled event type: ${event.type}`);
+//   }
+
+//   res.json({ received: true });
+// });

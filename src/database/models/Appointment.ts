@@ -25,6 +25,11 @@ const fields = {
         type: String,
         required: true,
     },
+    paymentMode: {
+        type: String,
+        enums: ["Regular", "Pre-deposit", "Confirmation"],
+        required: true,
+    },
     status: {
         type: String,
         enums: ["Accepted", "Pending", "Rejected", "Completed"],

@@ -10,10 +10,6 @@ const fields = {
         ref: "User",
         required: true,
     },
-    type: {
-        type: String,
-        enums: ["Text", "Image", "Appointment"],
-    },
     content: {
         text: {
             type: String,
@@ -33,11 +29,6 @@ const fields = {
                 },
             },
         ],
-        appointmentId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "ClientAppointment",
-            default: null,
-        },
     },
 };
 export const getReceiverId = (senderId: string, ids: string[]) =>

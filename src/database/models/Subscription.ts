@@ -1,23 +1,33 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
 // Insert table fields here
 const fields = {
-    title: {
+    userId: {
         type: String,
         required: true,
     },
-    renewalPeriod: {
-        type: String,
-        enums: ["Monthly", "Yearly", "Weekly"],
+    paymentIntentId: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: "PaymentIntent",
     },
-    price: {
-        type: Number,
+    subscriptionPlanId: {
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: "SubscriptionPlan",
+    },
+
+    issuedAt: {
+        type: Date,
+        default: null,
+    },
+    expireAt: {
+        type: Date,
+        default: null,
     },
     isActive: {
         type: Boolean,
-        default: true,
+        default: false,
     },
 };
 

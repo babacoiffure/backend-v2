@@ -1,11 +1,13 @@
 import Appointment from "../database/models/Appointment";
 import Payment from "../database/models/Payment";
+import PaymentIntent from "../database/models/PaymentIntent";
 import ProviderService from "../database/models/ProviderService";
 import User from "../database/models/User";
 import {
     generatePaymentIntent,
     getPaymentIntentStatus,
     getStatusMessage,
+    stripe,
 } from "../libraries/stripe";
 import { handleAsyncHttp } from "../middleware/controller";
 import { acceptAppointmentById } from "../service/appointment.service";
@@ -18,12 +20,7 @@ import { getPercentage } from "../utils/helper";
 
 export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
     async (req, res) => {
-        const {
-            appointmentId,
-            currency,
-            selectedAddons,
-            selectedSizeBasedAddons,
-        } = req.body;
+        const { appointmentId, currency } = req.body;
 
         const appointment = await Appointment.findById(appointmentId);
         if (!appointment) {
@@ -33,6 +30,8 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
         const providerService = await ProviderService.findById(
             appointment.providerServiceId
         );
+        const selectedAddons = appointment.selectedAddons;
+        const selectedSizeBasedAddons = appointment.selectedSizeBasedAddons;
         let isAddonSelected =
             selectedAddons?.length > 0 || selectedSizeBasedAddons?.length > 0;
 
@@ -40,8 +39,7 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
             return res.error("Resource not found", 400);
         }
 
-        const appointmentPaymentMode =
-            provider.providerSettings?.appointmentMode;
+        const appointmentPaymentMode = appointment.paymentMode;
 
         const getAppointmentTotalAmount = () => {
             let totalAmount = providerService.price;
@@ -86,28 +84,38 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
                         ? "Pre-deposit"
                         : "Regular",
             });
-            const intent = await generatePaymentIntent(payAmount, currency, {
-                // transfer_data: {
-                //     destination: provider.providerSettings?.stripeAccountId,
-                // },
-            });
+            const intent = await generatePaymentIntent(
+                payAmount * 100,
+                currency,
+                {
+                    // transfer_data: {
+                    //     destination: provider.providerSettings?.stripeAccountId,
+                    // },
+                }
+            );
             return res.success("Payment intent created", {
                 clientSecret: intent.client_secret,
                 payment,
+                intentId: intent.id,
             });
         } else if (payment.status === "Paid") {
             return res.error("Already paid", 400);
         } else if (payment.status === "Ongoing") {
             // pre-deposit 2nd phase
             payAmount = payment.dueAmount;
-            const intent = await generatePaymentIntent(payAmount, currency, {
-                // transfer_data: {
-                //     destination: provider.providerSettings?.stripeAccountId,
-                // },
-            });
+            const intent = await generatePaymentIntent(
+                payAmount * 100,
+                currency,
+                {
+                    // transfer_data: {
+                    //     destination: provider.providerSettings?.stripeAccountId,
+                    // },
+                }
+            );
             return res.success("Payment intent created", {
                 clientSecret: intent.client_secret,
                 payment,
+                intentId: intent.id,
             });
         } else {
             if (appointmentPaymentMode === "Pre-deposit") {
@@ -119,14 +127,19 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
             }
 
             // has payment intent but that was not successful
-            const intent = await generatePaymentIntent(payAmount, currency, {
-                // transfer_data: {
-                //     destination: provider.providerSettings?.stripeAccountId,
-                // },
-            });
+            const intent = await generatePaymentIntent(
+                payAmount * 100,
+                currency,
+                {
+                    // transfer_data: {
+                    //     destination: provider.providerSettings?.stripeAccountId,
+                    // },
+                }
+            );
             return res.success("Payment intent created", {
                 clientSecret: intent.client_secret,
                 payment,
+                intentId: intent.id,
             });
         }
     }
@@ -158,41 +171,85 @@ export const handleSuccessfulAppointmentPayment = handleAsyncHttp(
         }
         await payment.save();
         if (payment.status === "Paid") {
+            console.log("SAVING>>");
+            // await Appointment.findByIdAndUpdate(payment.appointmentId, {
+            //     status: "Accepted",
+            // });
             await acceptAppointmentById(payment.appointmentId.toString());
         }
-        res.success("Payment successful", payment, 200);
+
+        res.success(
+            "Payment successful",
+            {
+                payment,
+                appointment: await Appointment.findById(payment.appointmentId),
+            },
+            200
+        );
     }
 );
 
-export const handleCreateSubscriptionPaymentIntent = handleAsyncHttp(
+export const handleCreateSubscriptionPlanPaymentIntent = handleAsyncHttp(
     async (req, res) => {
-        const { subscriptionId, currency } = req.body;
-        const subscription = await getSubscriptionById(subscriptionId);
-        const intent = await generatePaymentIntent(
-            subscription.price,
-            currency
-        );
-        res.success("Intent", intent, 200);
+        const { subscriptionId, currency, userId } = req.body;
+        const subscriptionPlan = await getSubscriptionById(subscriptionId); //subPlan
+        const price = (subscriptionPlan.price?.amount as number) * 100;
+        const intent = await generatePaymentIntent(price, currency);
+        const paymentIntent = await PaymentIntent.create({
+            amount: price,
+            amountCurrency: currency,
+            intentData: intent,
+            userId,
+        });
+        res.success("Intent", paymentIntent, 200);
     }
 );
 
 export const handleSuccessfulSubscriptionPayment = handleAsyncHttp(
     async (req, res) => {
-        const { stripeData, intentId, userId, subscriptionId } = req.body;
-        const paymentIntent = await getPaymentIntentStatus(intentId);
-        if (paymentIntent.status === "succeeded") {
+        const { intentId, userId, subscriptionId } = req.body;
+
+        const paymentIntent = await PaymentIntent.findById(intentId);
+
+        const stripeIntent = await getPaymentIntentStatus(
+            paymentIntent?.intentData.id
+        );
+        await PaymentIntent.findByIdAndUpdate(paymentIntent?._id, {
+            status: stripeIntent.status,
+            intentData: stripeIntent,
+        });
+        if (stripeIntent.status === "succeeded") {
             const subs = await giveSubscriptionToUser(
                 userId,
                 subscriptionId,
-                stripeData
+                intentId
             );
-            res.success(getStatusMessage(paymentIntent.status), subs);
+            res.success(getStatusMessage(stripeIntent.status), subs);
         } else {
             res.success(
-                getStatusMessage(paymentIntent.status),
+                getStatusMessage(stripeIntent.status),
                 paymentIntent,
                 400
             );
         }
     }
 );
+
+export const handleCreateCheckoutSession = handleAsyncHttp(async (req, res) => {
+    const { priceId, customerEmail } = req.body;
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "subscription", // Change to "payment" for one-time services
+        customer_email: customerEmail,
+        line_items: [
+            {
+                price: priceId, // Use a Stripe Price ID for subscriptions
+                quantity: 1,
+            },
+        ],
+        success_url: "https://albi.netlify.app/payment-success",
+        cancel_url: "https://albi.netlify.app/payment-failed",
+    });
+
+    res.success("success", { sessionId: session.id, url: session.url });
+});

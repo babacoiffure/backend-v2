@@ -1,16 +1,20 @@
 import { Router } from "express";
 import {
     handleCreateSubscription,
-    handleGetSubscriptionList,
+    handleCreateSubscriptionPlan,
+    handleGetSubscriptionListPlan,
     handleGetSubscriptionValidity,
-    handleInactiveSubscription,
-    handleUpdateSubscription,
+    handleInactiveSubscriptionPlan,
+    handleUpdateSubscriptionPlan,
 } from "../../controllers/subscription.controller";
 
 export const subscriptionRouter = Router();
 
 subscriptionRouter.get("/check/:id", handleGetSubscriptionValidity);
-subscriptionRouter.get("/list", handleGetSubscriptionList);
 subscriptionRouter.post("/create", handleCreateSubscription);
-subscriptionRouter.post("/update/:id", handleUpdateSubscription);
-subscriptionRouter.post("/inactive/:id", handleInactiveSubscription);
+// plan
+subscriptionRouter.get("/plan/list", handleGetSubscriptionListPlan);
+subscriptionRouter.get("/plan/by-id/:id", handleGetSubscriptionListPlan);
+subscriptionRouter.post("/plan/create", handleCreateSubscriptionPlan);
+subscriptionRouter.post("/plan/update/:id", handleUpdateSubscriptionPlan);
+subscriptionRouter.post("/plan/inactive/:id", handleInactiveSubscriptionPlan);
