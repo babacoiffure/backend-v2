@@ -6,7 +6,11 @@ import { socketServer } from "../server";
 import { sendUserNotification } from "../service/notification.service";
 import queryHelper from "../utils/query-helper";
 export const handleGetChatByUserIds = handleAsyncHttp(async (req, res) => {
-    const query = { userIds: req.params.uidPair.split(",") };
+    const ids = req.params.uidPair.split(",");
+    if (ids.length !== 2) {
+        return res.error("Provide two id with ',' separator in a string");
+    }
+    const query = { userIds: ids };
     let chat = await Chat.findOne(query);
     if (!chat) {
         chat = await Chat.create(query);
