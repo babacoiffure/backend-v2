@@ -127,6 +127,7 @@ export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
     res.success("Auth details", {
         isAuthValid: Boolean(req.headers?.userId),
         userId: req.headers?.userId,
+        user: await User.findById(req.headers?.userId),
         userType: req.headers?.userType,
         accessToken: req.cookies["accessToken"],
         refreshToken: req.cookies["refreshToken"],
