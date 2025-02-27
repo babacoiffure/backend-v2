@@ -43,8 +43,8 @@ export const handleSendChatMessage = handleAsyncHttp(async (req, res) => {
     await chat.save();
     socketServer.emit(chatEvents.chatNewMessage(chatId), newMessage);
     // send notification by socket
-    let receiverId = getReceiverId(senderId, chat.userIds as any);
-    await sendUserNotification(receiverId, "New Message", newMessage);
+    // let receiverId = getReceiverId(senderId, chat.userIds as any);
+    // await sendUserNotification(receiverId, "New Message", newMessage);
     res.success("newMessage sent", newMessage);
 });
 export const handleEditChatMessage = handleAsyncHttp(async (req, res) => {

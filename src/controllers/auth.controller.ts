@@ -128,6 +128,8 @@ export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
         isAuthValid: Boolean(req.headers?.userId),
         userId: req.headers?.userId,
         userType: req.headers?.userType,
+        accessToken: req.cookies["accessToken"],
+        refreshToken: req.cookies["refreshToken"],
     });
 });
 export const handleChangeEmailRequestVerify = handleAsyncHttp(

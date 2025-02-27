@@ -20,6 +20,10 @@ const fields = {
         type: Object,
         required: true,
     },
+    categoryType: {
+        type: String,
+        required: true,
+    },
 };
 export default model(
     "UserNotification",

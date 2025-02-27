@@ -45,28 +45,30 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
         paymentMode: provider?.providerSettings?.appointmentMode,
         ...req.body,
     });
-    await sendUserNotification(
-        appointment.clientId.toString(),
-        "Appointment created",
-        appointment
-    );
-    await sendUserNotification(
-        appointment.providerId.toString(),
-        "You have a new appointment",
-        appointment
-    );
-    res.success(
-        "Appointment created",
-        await Appointment.findById(appointment._id, null, {
-            populate: ["providerId"],
-        })
-    );
+    const newAppointment = await Appointment.findById(appointment._id, null, {
+        populate: ["providerId", "clientId", "providerServiceId"],
+    });
+    await sendUserNotification({
+        userId: appointment.clientId.toString(),
+        title: "Appointment created",
+        data: newAppointment,
+        categoryType: "Appointment",
+    });
+    await sendUserNotification({
+        userId: appointment.providerId.toString(),
+        title: "You have a new appointment",
+        data: newAppointment,
+        categoryType: "AppointmentConfirmation",
+    });
+    res.success("Appointment created", newAppointment);
 });
 
 export const handleProposeForRescheduleAppointment = handleAsyncHttp(
     async (req, res) => {
         const { id, proposal } = req.body;
-        const appointment = await Appointment.findById(id);
+        const appointment = await Appointment.findById(id, null, {
+            populate: ["providerId", "clientId", "providerServiceId"],
+        });
         if (!appointment) {
             return res.error("No appointment found", 400);
         }
@@ -74,17 +76,19 @@ export const handleProposeForRescheduleAppointment = handleAsyncHttp(
         await appointment.save();
         //TODO: have to check for insertion
         if (proposal.from === "Provider") {
-            await sendUserNotification(
-                appointment.providerId.toString(),
-                "New reschedule proposal for appointment",
-                appointment
-            );
+            await sendUserNotification({
+                userId: appointment.providerId.toString(),
+                title: "New reschedule proposal for appointment",
+                data: appointment,
+                categoryType: "AppointmentRescheduleProposal",
+            });
         } else {
-            await sendUserNotification(
-                appointment.clientId.toString(),
-                "New reschedule proposal for appointment",
-                appointment
-            );
+            await sendUserNotification({
+                userId: appointment.clientId.toString(),
+                title: "New reschedule proposal for appointment",
+                data: appointment,
+                categoryType: "AppointmentRescheduleProposal",
+            });
         }
         socketServer.emit(
             appointmentEvents.sendAppointmentRescheduleProposal(
@@ -97,7 +101,9 @@ export const handleProposeForRescheduleAppointment = handleAsyncHttp(
 );
 export const handleAcceptRescheduleProposalOfAppointment = handleAsyncHttp(
     async (req, res) => {
-        let appointment = await Appointment.findById(req.body.id);
+        let appointment = await Appointment.findById(req.body.id, null, {
+            populate: ["providerId", "clientId", "providerServiceId"],
+        });
         if (!appointment) {
             return res.error("No appointment", 400);
         }
@@ -131,18 +137,21 @@ export const handleAcceptAppointment = handleAsyncHttp(async (req, res) => {
 });
 export const handleRejectAppointment = handleAsyncHttp(async (req, res) => {
     //TODO: check provider or
-    let appointment = await Appointment.findById(req.body.id);
+    let appointment = await Appointment.findById(req.body.id, null, {
+        populate: ["providerId", "clientId", "providerServiceId"],
+    });
     if (!appointment) {
         return res.error("Already rejected");
     }
     await Appointment.findOneAndUpdate(appointment._id, {
         status: "Rejected",
     });
-    await sendUserNotification(
-        appointment?.clientId.toString(),
-        "Appointment rejected",
-        appointment
-    );
+    await sendUserNotification({
+        userId: appointment?.clientId.toString(),
+        title: "Appointment rejected",
+        data: appointment,
+        categoryType: "Appointment",
+    });
     res.success("Rejected appointment");
 });
 
