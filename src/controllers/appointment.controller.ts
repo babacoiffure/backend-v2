@@ -49,13 +49,13 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
         populate: ["providerId", "clientId", "providerServiceId"],
     });
     await sendUserNotification({
-        userId: appointment.clientId.toString(),
+        userId: appointment.clientId._id.toString(),
         title: "Appointment created",
         data: newAppointment,
         categoryType: "Appointment",
     });
     await sendUserNotification({
-        userId: appointment.providerId.toString(),
+        userId: appointment.providerId._id.toString(),
         title: "You have a new appointment",
         data: newAppointment,
         categoryType: "AppointmentConfirmation",
@@ -77,14 +77,14 @@ export const handleProposeForRescheduleAppointment = handleAsyncHttp(
         //TODO: have to check for insertion
         if (proposal.from === "Provider") {
             await sendUserNotification({
-                userId: appointment.providerId.toString(),
+                userId: appointment.providerId._id.toString(),
                 title: "New reschedule proposal for appointment",
                 data: appointment,
                 categoryType: "AppointmentRescheduleProposal",
             });
         } else {
             await sendUserNotification({
-                userId: appointment.clientId.toString(),
+                userId: appointment.clientId._id.toString(),
                 title: "New reschedule proposal for appointment",
                 data: appointment,
                 categoryType: "AppointmentRescheduleProposal",
@@ -147,7 +147,7 @@ export const handleRejectAppointment = handleAsyncHttp(async (req, res) => {
         status: "Rejected",
     });
     await sendUserNotification({
-        userId: appointment?.clientId.toString(),
+        userId: appointment?.clientId._id.toString(),
         title: "Appointment rejected",
         data: appointment,
         categoryType: "Appointment",

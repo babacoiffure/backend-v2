@@ -12,7 +12,7 @@ export const acceptAppointmentById = async (id: string) => {
     appointment.status = "Accepted";
     await appointment.save();
     await sendUserNotification({
-        userId: appointment?.clientId.toString(),
+        userId: appointment?.clientId?._id.toString(),
         title: "Appointment accepted",
         data: appointment,
         categoryType: "Appointment",
