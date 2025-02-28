@@ -1,6 +1,8 @@
+import ProviderSchedule from "../database/models/ProviderSchedule";
 import ProviderService from "../database/models/ProviderService";
 import { handleAsyncHttp } from "../middleware/controller";
 import queryHelper from "../utils/query-helper";
+import { getDayMatchQuery } from "../utils/utils";
 
 export const handleCreateProviderService = handleAsyncHttp(async (req, res) => {
     const data = await ProviderService.create(req.body);
@@ -32,5 +34,28 @@ export const handleGetProviderServiceById = handleAsyncHttp(
             "Provider service",
             await ProviderService.findById(req.params.id)
         );
+    }
+);
+
+export const handleGetProviderServiceListBySchedule = handleAsyncHttp(
+    async (req, res) => {
+        const query = {
+            ...req.body,
+        };
+        if (req.body?.scheduleDate) {
+            query.scheduleDate = getDayMatchQuery(req.body.scheduleDate);
+        }
+        const schedules = await ProviderSchedule.find(query).limit(20);
+        let services: any[] = [];
+        for (let schedule of schedules) {
+            services = services.concat(
+                await ProviderService.find(
+                    { ownerId: schedule.providerId.toString() },
+                    null,
+                    { populate: ["ownerId"] }
+                )
+            );
+        }
+        return res.success("serviceList", services);
     }
 );
