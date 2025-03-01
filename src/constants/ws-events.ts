@@ -2,6 +2,7 @@ export const chatEvents = {
     chatNewMessage: (chatId: string) => `chat/new-message/${chatId}`,
     chatMessageUpdated: (chatId: string) => `chat/message-update/${chatId}`,
     chatMessageDeleted: (chatId: string) => `chat/message-delete/${chatId}`,
+    chatMessageRead: () => `chat/message:read`,
 };
 
 export const notificationEvents = {

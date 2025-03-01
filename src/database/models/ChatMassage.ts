@@ -5,6 +5,10 @@ const fields = {
         ref: "Chat",
         required: true,
     },
+    isUnread: {
+        type: Boolean,
+        default: true,
+    },
     senderId: {
         type: mongoose.Schema.ObjectId,
         ref: "User",

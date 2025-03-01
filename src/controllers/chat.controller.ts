@@ -1,9 +1,8 @@
 import { chatEvents } from "../constants/ws-events";
 import Chat from "../database/models/Chat";
-import ChatMassage, { getReceiverId } from "../database/models/ChatMassage";
+import ChatMassage from "../database/models/ChatMassage";
 import { handleAsyncHttp } from "../middleware/controller";
 import { socketServer } from "../server";
-import { sendUserNotification } from "../service/notification.service";
 import queryHelper from "../utils/query-helper";
 export const handleGetChatByUserIds = handleAsyncHttp(async (req, res) => {
     const ids = req.params.uidPair.split(",");
@@ -29,7 +28,6 @@ export const handleGetChatById = handleAsyncHttp(async (req, res) => {
 
 export const handleSendChatMessage = handleAsyncHttp(async (req, res) => {
     const { chatId, content, senderId } = req.body;
-    console.log(req.body);
     const chat = await Chat.findById(chatId);
     if (!chat) {
         return res.error("Chat not found", 404);
