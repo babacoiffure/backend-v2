@@ -17,6 +17,11 @@ const fields = {
         ref: "ProviderService",
         required: true,
     },
+    scheduleId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ProviderSchedule",
+        required: true,
+    },
     scheduleDate: {
         type: Date,
         required: true,

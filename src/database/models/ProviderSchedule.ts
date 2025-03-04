@@ -18,8 +18,15 @@ const fields = {
     },
     timePeriods: [
         {
-            type: String,
-            required: true,
+            timePeriod: {
+                type: String,
+                required: true,
+            },
+            occupiedAppointmentId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Appointment",
+                default: null,
+            },
         },
     ],
 };

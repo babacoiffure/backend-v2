@@ -35,3 +35,13 @@ export const handleGetProviderScheduleList = handleAsyncHttp(
         res.success("List", schedule);
     }
 );
+
+// export const handleGetFreeTimePeriods = handleAsyncHttp(async (req, res) => {
+//     const { scheduleDate,providerId} = req.body;
+//     const schedule = await ProviderSchedule.findOne({
+//         scheduleDate: getDayMatchQuery(
+//             isNaN(Number(scheduleDate)) ? scheduleDate : Number(scheduleDate)
+//         ),
+//     });
+//     // const schedule
+// });
