@@ -38,12 +38,20 @@ export const handleSendChatMessage = handleAsyncHttp(async (req, res) => {
         content,
     });
     const newMessage = await ChatMassage.findById(message._id, null, {
-        populate: ["senderId"],
+        populate: ["senderId", "chatId"],
     });
     if (!newMessage) return res.error("No message");
     chat.lastMessageId = newMessage._id;
     await chat.save();
     socketServer.emit(chatEvents.chatNewMessage(chatId), newMessage);
+
+    // sending chat object to chat list of user to update the list
+    for (let user of chat.userIds) {
+        socketServer.emit(
+            chatEvents.chatListUpdate(user._id.toString()),
+            await Chat.findById(chatId)
+        );
+    }
     // send notification by socket
     // let receiverId = getReceiverId(senderId, chat.userIds as any);
     // await sendUserNotification(receiverId, "New Message", newMessage);
