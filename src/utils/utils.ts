@@ -21,7 +21,7 @@ export const generateRandomNumber = (digit: number) => {
     return Number(randomNum);
 };
 
-export function getDayMatchQuery(targetDate: Date) {
+export function getDayMatchQuery(targetDate: string | number) {
     // Create the start and end of the day
     const startOfDay = new Date(targetDate);
     startOfDay.setHours(0, 0, 0, 0); // Set to 00:00:00.000
