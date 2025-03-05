@@ -7,10 +7,12 @@ export const acceptAppointmentById = async (id: string) => {
     let appointment = await Appointment.findById(id, null, {
         populate: ["providerId", "clientId", "providerServiceId"],
     });
-    if (!appointment || appointment?.status === "Accepted") {
-        throw new ErrorHandler("Already accepted", 400);
+    if (!appointment) {
+        throw new ErrorHandler("invalid  appointment id", 400);
     }
-    const schedule = await ProviderSchedule.findById(appointment.scheduleId);
+    const schedule = await ProviderSchedule.findById(
+        appointment.providerScheduleId
+    );
 
     if (!schedule) {
         throw new ErrorHandler("Schedule not found", 400);

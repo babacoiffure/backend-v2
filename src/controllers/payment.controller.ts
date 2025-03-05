@@ -84,6 +84,8 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
                         ? "Pre-deposit"
                         : "Regular",
             });
+            appointment.paymentId = payment._id;
+            await appointment.save();
             const intent = await generatePaymentIntent(
                 payAmount * 100,
                 currency,
@@ -170,13 +172,7 @@ export const handleSuccessfulAppointmentPayment = handleAsyncHttp(
             });
         }
         await payment.save();
-        if (payment.status === "Paid") {
-            console.log("SAVING>>");
-            // await Appointment.findByIdAndUpdate(payment.appointmentId, {
-            //     status: "Accepted",
-            // });
-            await acceptAppointmentById(payment.appointmentId.toString());
-        }
+        await acceptAppointmentById(payment.appointmentId.toString());
 
         res.success(
             "Payment successful",

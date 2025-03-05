@@ -43,6 +43,7 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
     const appointment = await Appointment.create({
         status: "Pending",
         paymentMode: provider?.providerSettings?.appointmentMode,
+        clientId: req.headers.userId,
         ...req.body,
     });
     const newAppointment = await Appointment.findById(appointment._id, null, {

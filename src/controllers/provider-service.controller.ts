@@ -39,10 +39,8 @@ export const handleGetProviderServiceById = handleAsyncHttp(
 
 export const handleGetProviderServiceListBySchedule = handleAsyncHttp(
     async (req, res) => {
-        const query = {
-            ...req.body,
-        };
-        if (req.body?.scheduleDate) {
+        const query: any = {};
+        if (req.params?.scheduleDate) {
             query.scheduleDate = getDayMatchQuery(req.body.scheduleDate);
         }
         const schedules = await ProviderSchedule.find(query).limit(20);
