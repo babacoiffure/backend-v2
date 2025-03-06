@@ -33,7 +33,7 @@ export const acceptAppointmentById = async (id: string) => {
     await sendUserNotification({
         userId: appointment?.clientId?._id.toString(),
         title: "Appointment accepted",
-        data: appointment,
+        data: appointment.toObject(),
         categoryType: "Appointment",
     });
 };

@@ -17,16 +17,8 @@ const fields = {
         default: true,
     },
     data: {
-        providerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to Provider
-        clientId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to Client
-        providerServiceId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "ProviderService",
-        }, // Reference to Client
-        providerScheduleId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "ProviderSchedule",
-        }, // Reference to Client
+        type: Object,
+        default: null,
     },
     categoryType: {
         type: String,

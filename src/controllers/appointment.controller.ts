@@ -40,16 +40,16 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
     await sendUserNotification({
         userId: appointment.clientId._id.toString(),
         title: "Appointment created",
-        data: newAppointment,
+        data: newAppointment?.toObject(),
         categoryType: "Appointment",
     });
     await sendUserNotification({
         userId: appointment.providerId._id.toString(),
         title: "You have a new appointment",
-        data: newAppointment,
+        data: newAppointment?.toObject(),
         categoryType: "AppointmentConfirmation",
     });
-    res.success("Appointment created", newAppointment);
+    res.success("Appointment created", newAppointment?.toObject());
 });
 
 export const handleProposeForRescheduleAppointment = handleAsyncHttp(
@@ -68,14 +68,14 @@ export const handleProposeForRescheduleAppointment = handleAsyncHttp(
             await sendUserNotification({
                 userId: appointment.providerId._id.toString(),
                 title: "New reschedule proposal for appointment",
-                data: appointment,
+                data: appointment.toObject(),
                 categoryType: "AppointmentRescheduleProposal",
             });
         } else {
             await sendUserNotification({
                 userId: appointment.clientId._id.toString(),
                 title: "New reschedule proposal for appointment",
-                data: appointment,
+                data: appointment.toObject(),
                 categoryType: "AppointmentRescheduleProposal",
             });
         }
@@ -138,7 +138,7 @@ export const handleRejectAppointment = handleAsyncHttp(async (req, res) => {
     await sendUserNotification({
         userId: appointment?.clientId._id.toString(),
         title: "Appointment rejected",
-        data: appointment,
+        data: appointment.toObject(),
         categoryType: "Appointment",
     });
     res.success("Rejected appointment");
