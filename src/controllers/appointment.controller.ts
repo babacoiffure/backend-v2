@@ -17,28 +17,16 @@ export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
         return res.error("The timePeriod of this schedule already taken.", 400);
     }
 
+    if (
+        isExists?.clientId.toString() === req.headers.userId &&
+        isExists?.selectedAddons?.length === req.body?.selectedAddons?.length &&
+        isExists?.selectedSizeBasedAddons?.length ===
+            req.body?.selectedSizeBasedAddons?.length
+    ) {
+        return res.success("Appointment", isExists);
+    }
+
     const provider = await User.findById(req.body.providerId);
-    // if (appointmentMode === "Pre-deposit") {
-    //     // already payment done
-    //     const payment = await Payment.findOne({
-    //         clientId: req.body.clientId,
-    //         providerServiceId: req.body.providerServiceId,
-    //         status: "Pre-deposit",
-    //     });
-    //     if (!payment) {
-    //         return res.error("Pre-deposit not done yet.", 400);
-    //     }
-    // } else if (appointmentMode === "Regular") {
-    //     // already payment done
-    //     const payment = await Payment.findOne({
-    //         clientId: req.body.clientId,
-    //         providerServiceId: req.body.providerServiceId,
-    //         status: "Paid",
-    //     });
-    //     if (!payment) {
-    //         return res.error("Full payment is not done yet.", 400);
-    //     }
-    // }
 
     const appointment = await Appointment.create({
         status: "Pending",
