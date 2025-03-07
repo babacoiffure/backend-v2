@@ -11,6 +11,19 @@ env:
   JWT_SECRET: KC6UyRtBW0Xm5yz4GMuWUwCY0hnTIA0NzwQBljqR2hyltM8d4O
   ENV_TYPE: DEV
   MINIO_USE_SSL: true
+  Database_URI: mongodb://localhost:27017/saloon_db
+  ACCESS_TOKEN_PRIVATE_KEY: ${{ secrets.ACCESS_TOKEN_PRIVATE_KEY }}
+  ACCESS_TOKEN_PUBLIC_KEY: ${{ secrets.ACCESS_TOKEN_PUBLIC_KEY }}
+  REFRESH_TOKEN_PRIVATE_KEY: ${{ secrets.REFRESH_TOKEN_PRIVATE_KEY }}
+  REFRESH_TOKEN_PUBLIC_KEY: ${{ secrets.REFRESH_TOKEN_PUBLIC_KEY }}
+  CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+  CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+  CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+  CLOUDINARY_API_ENVIRONMENT_VARIABLE: ${{ secrets.CLOUDINARY_API_ENVIRONMENT_VARIABLE }}
+  NODEMAILER_GMAIL_ID: ${{ secrets.NODEMAILER_GMAIL_ID }}
+  NODEMAILER_GMAIL_APP_PASSWORD: ${{ secrets.NODEMAILER_GMAIL_APP_PASSWORD }}
+  TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
 on:
   push:
@@ -69,6 +82,11 @@ jobs:
   deploy:
     # needs: test
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
 
     steps:
       - name: Checkout code

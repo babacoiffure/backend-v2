@@ -44,7 +44,7 @@ EXPOSE 3000
 
 # Health check (optional)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-	CMD node -e "require('http').get('http://localhost:3000/health', (res) => { if (res.statusCode !== 200) throw new Error('Health check failed'); })" || exit 1
+	CMD node -e "require('http').get('http://localhost:3000/health-check', (res) => { if (res.statusCode !== 200) throw new Error('Health check failed'); })" || exit 1
 
 # Run the application
 CMD ["npm", "start"]
