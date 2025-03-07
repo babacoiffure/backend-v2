@@ -1,5 +1,6 @@
 import Appointment from "../database/models/Appointment";
 import ProviderSchedule from "../database/models/ProviderSchedule";
+import UserNotification from "../database/models/UserNotification";
 import { ErrorHandler } from "../middleware/error";
 import { sendUserNotification } from "./notification.service";
 
@@ -30,10 +31,22 @@ export const acceptAppointmentById = async (id: string) => {
     appointment.status = "Accepted";
     await appointment.save();
 
+    const nList = await UserNotification.find({
+        "data._id": appointment._id.toString(),
+    });
+    for (let i of nList) {
+        await UserNotification.findByIdAndDelete(i._id.toString());
+    }
     await sendUserNotification({
         userId: appointment?.clientId?._id.toString(),
         title: "Appointment accepted",
         data: appointment.toObject(),
-        categoryType: "Appointment",
+        categoryType: "Appointment Accept",
+    });
+    await sendUserNotification({
+        userId: appointment?.providerId?._id.toString(),
+        title: "Appointment accepted",
+        data: appointment.toObject(),
+        categoryType: "Appointment Accept",
     });
 };
