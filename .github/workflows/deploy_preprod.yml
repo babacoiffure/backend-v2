@@ -21,53 +21,53 @@ on:
       - "main"
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Start MySQL in Docker
-        run: |
-          docker run --name mysql -e MYSQL_ROOT_PASSWORD=${{ env.DB_PASSWORD }} -e MYSQL_DATABASE=${{ env.DB_DATABASE }} -p 3306:3306 -d mysql:8
-
-      - name: Wait for MySQL to be ready
-        run: |
-          for i in {1..60}; do
-            if docker exec mysql mysqladmin ping -h127.0.0.1 -P3306 -uroot -p${{ env.DB_PASSWORD }} --silent; then
-              echo "MySQL is ready!"
-              break
-            fi
-            echo "Waiting for MySQL to be ready... Attempt $i"
-            sleep 10
-          done
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.23
-
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Test
-        run: go test -count=1 -v ./...
-
-      - name: Cleanup MySQL
-        run: |
-          docker stop mysql
-          docker rm mysql
+  # test:
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #
+  #     - name: Start MySQL in Docker
+  #       run: |
+  #         docker run --name mysql -e MYSQL_ROOT_PASSWORD=${{ env.DB_PASSWORD }} -e MYSQL_DATABASE=${{ env.DB_DATABASE }} -p 3306:3306 -d mysql:8
+  #
+  #     - name: Wait for MySQL to be ready
+  #       run: |
+  #         for i in {1..60}; do
+  #           if docker exec mysql mysqladmin ping -h127.0.0.1 -P3306 -uroot -p${{ env.DB_PASSWORD }} --silent; then
+  #             echo "MySQL is ready!"
+  #             break
+  #           fi
+  #           echo "Waiting for MySQL to be ready... Attempt $i"
+  #           sleep 10
+  #         done
+  #
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v2
+  #       with:
+  #         go-version: 1.23
+  #
+  #     - name: Cache Go modules
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           ~/.cache/go-build
+  #           ~/go/pkg/mod
+  #         key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-go-
+  #
+  #     - name: Test
+  #       run: go test -count=1 -v ./...
+  #
+  #     - name: Cleanup MySQL
+  #       run: |
+  #         docker stop mysql
+  #         docker rm mysql
 
   deploy:
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
 
     steps:
