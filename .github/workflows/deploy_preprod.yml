@@ -78,7 +78,7 @@ jobs:
           echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d '/' -f 2)" >> $GITHUB_ENV
           echo "VERSION=$(echo preprod)" >> $GITHUB_ENV
       - name: connect to docker
-        run: docker login ${{ secrets.CONTAINER_REGISTERY }} -u nologin --password-stdin <<< ${{ secrets.REGISTERY_API_KEY }}
+        run: docker login ${{ secrets.CONTAINER_REGISTERY }} -u nologin --password-stdin <<< ${{ secrets.SCW_SECRET_KEY }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push
