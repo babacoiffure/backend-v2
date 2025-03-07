@@ -12,12 +12,12 @@ COPY package*.json ./
 
 # Install production dependencies
 FROM base AS deps
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Build stage
 FROM base AS builder
 # Install all dependencies for building
-RUN npm ci
+RUN npm install
 # Copy source files
 COPY . .
 # Build TypeScript to JavaScript
