@@ -16,7 +16,6 @@ const fields = {
         required: true,
         ref: "SubscriptionPlan",
     },
-
     issuedAt: {
         type: Date,
         default: null,
@@ -25,9 +24,10 @@ const fields = {
         type: Date,
         default: null,
     },
-    isActive: {
-        type: Boolean,
-        default: false,
+    status: {
+        type: String,
+        default: "Active",
+        enums: ["Active", "Cancelled"],
     },
 };
 

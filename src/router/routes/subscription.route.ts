@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-    handleCreateSubscription,
+    handleCancelProviderSubscription,
     handleCreateSubscriptionPlan,
     handleGetSubscriptionListPlan,
     handleGetSubscriptionValidity,
@@ -11,7 +11,9 @@ import {
 export const subscriptionRouter = Router();
 
 subscriptionRouter.get("/check/:id", handleGetSubscriptionValidity);
-subscriptionRouter.post("/create", handleCreateSubscription);
+subscriptionRouter.get("/cancel/:id", handleCancelProviderSubscription);
+
+// subscriptionRouter.post("/create", handleCreateSubscription);
 // plan
 subscriptionRouter.get("/plan/list", handleGetSubscriptionListPlan);
 subscriptionRouter.get("/plan/by-id/:id", handleGetSubscriptionListPlan);
