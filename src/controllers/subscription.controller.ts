@@ -89,36 +89,6 @@ export const handleCancelProviderSubscription = handleAsyncHttp(
 export const handleResumeProviderSubscription = handleAsyncHttp(
     async (req, res) => {
         const data = await resumeSubscription(req.params.id);
-        res.success("Subscription canceled", data, 200);
+        res.success("Subscription resumed", data, 200);
     }
 );
-
-// export const handleCreateSubscription = handleAsyncHttp(async (req, res) => {
-//     const { paymentMethodId, customerEmail, subscriptionPlanId } = req.body;
-//     const subscriptionPlan = await SubscriptionPlan.findById(
-//         subscriptionPlanId
-//     );
-//     if (!subscriptionPlan) {
-//         return res.error("Invalid subscription");
-//     }
-//     // Create or get customer
-//     let customer = (await stripe.customers.list({ email: customerEmail }))
-//         .data[0];
-//     if (!customer) {
-//         customer = await stripe.customers.create({
-//             email: customerEmail,
-//             payment_method: paymentMethodId,
-//             invoice_settings: { default_payment_method: paymentMethodId },
-//         });
-//     }
-
-//     // Create a subscription
-//     const subscription = await stripe.subscriptions.create({
-//         customer: customer.id,
-//         items: [{ price: subscriptionPlan.stripeData?.price.id }],
-//         expand: ["latest_invoice.payment_intent"],
-//     });
-//     console.log(subscription);
-//     // have to create subscription in db
-//     res.success("Success");
-// });
