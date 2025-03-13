@@ -5,6 +5,7 @@ import {
     addYears,
     isAfter,
     isBefore,
+    isValid,
     sub,
 } from "date-fns";
 import SubscriptionPlan from "../database/models/SubscriptionPlan";
@@ -71,51 +72,19 @@ export const giveSubscriptionToUser = async (
 };
 
 export const checkHasValidSubscription = async (userId: string) => {
-    const subs = await Subscription.find({
-        userId,
-        $gt: { expireAt: Date.now() },
-    });
-
-    const activeSubs = subs.filter((sub) => sub.status === "Active");
-    const cancelledSubs = subs.filter((sub) => sub.status === "Cancelled");
-
-    if (activeSubs.length > 1) {
-        return {
-            isValid: true,
-            isExpired: false,
-            subscription: activeSubs[0],
-        };
-    } else if (cancelledSubs.length > 1) {
-        return {
-            isValid: true,
-            isExpired: false,
-            subscription: cancelledSubs[0],
-        };
-    } else {
-        return {
-            isValid: false,
-            isExpired: null,
-            subscription: null,
-        };
-    }
-};
-
-export const getUserSubscription = async (
-    userId: string,
-    throwError = true
-) => {
-    const subs = await Subscription.findOne(
+    const activeSubs = await Subscription.findOne(
         {
             userId,
+            status: "Active",
         },
         null,
         { populate: ["paymentIntentId", "subscriptionPlanId"] }
-    ).sort({ createdAt: -1 });
+    ).sort({ expireAt: -1 });
 
-    if (!subs && throwError) {
-        throw new ErrorHandler("No subscription found for this user", 400);
-    }
-    return subs;
+    return {
+        isValid: activeSubs ? true : false,
+        subscription: activeSubs ?? null,
+    };
 };
 
 export const cancelSubscription = async (userId: string) => {
@@ -123,7 +92,7 @@ export const cancelSubscription = async (userId: string) => {
     if (!subs.isValid || !subs.subscription) {
         throw new ErrorHandler("No subscription found for this user", 400);
     }
-    subs.subscription.status = "Cancelled";
+    subs.subscription.renewalStatus = "Disabled";
     await subs.subscription.save();
     return subs.subscription;
 };
