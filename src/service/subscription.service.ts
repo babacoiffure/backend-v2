@@ -96,3 +96,12 @@ export const cancelSubscription = async (userId: string) => {
     await subs.subscription.save();
     return subs.subscription;
 };
+export const resumeSubscription = async (userId: string) => {
+    const subs = await checkHasValidSubscription(userId);
+    if (!subs.isValid || !subs.subscription) {
+        throw new ErrorHandler("No subscription found for this user", 400);
+    }
+    subs.subscription.renewalStatus = "Enabled";
+    await subs.subscription.save();
+    return subs.subscription;
+};

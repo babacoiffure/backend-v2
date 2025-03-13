@@ -8,6 +8,7 @@ import {
     cancelSubscription,
     checkHasValidSubscription,
     createSubscriptionPlan,
+    resumeSubscription,
 } from "../service/subscription.service";
 import queryHelper from "../utils/query-helper";
 
@@ -82,6 +83,12 @@ export const handleGetSubscriptionValidity = handleAsyncHttp(
 export const handleCancelProviderSubscription = handleAsyncHttp(
     async (req, res) => {
         const data = await cancelSubscription(req.params.id);
+        res.success("Subscription canceled", data, 200);
+    }
+);
+export const handleResumeProviderSubscription = handleAsyncHttp(
+    async (req, res) => {
+        const data = await resumeSubscription(req.params.id);
         res.success("Subscription canceled", data, 200);
     }
 );

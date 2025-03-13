@@ -5,6 +5,7 @@ import {
     handleGetSubscriptionListPlan,
     handleGetSubscriptionValidity,
     handleInactiveSubscriptionPlan,
+    handleResumeProviderSubscription,
     handleUpdateSubscriptionPlan,
 } from "../../controllers/subscription.controller";
 
@@ -12,6 +13,7 @@ export const subscriptionRouter = Router();
 
 subscriptionRouter.get("/check/:id", handleGetSubscriptionValidity);
 subscriptionRouter.get("/cancel/:id", handleCancelProviderSubscription);
+subscriptionRouter.get("/resume/:id", handleResumeProviderSubscription);
 
 // subscriptionRouter.post("/create", handleCreateSubscription);
 // plan
