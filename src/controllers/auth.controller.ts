@@ -139,7 +139,7 @@ export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
             ? await checkHasValidSubscription(user?._id.toString())
             : null;
     }
-    res.success("Auth details");
+    res.success("Auth details", data);
 });
 export const handleChangeEmailRequestVerify = handleAsyncHttp(
     async (req, res) => {
