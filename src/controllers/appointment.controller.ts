@@ -6,6 +6,7 @@ import { socketServer } from "../server";
 import { acceptAppointmentById } from "../service/appointment.service";
 import { sendUserNotification } from "../service/notification.service";
 import queryHelper from "../utils/query-helper";
+import { getSearchMaterials } from "../utils/queryHelper";
 import { getDayMatchQuery } from "../utils/utils";
 
 export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
@@ -152,4 +153,15 @@ export const handleGetAppointmentList = handleAsyncHttp(async (req, res) => {
         query["scheduleDate"] = getDayMatchQuery(req.query.scheduleDate as any);
     }
     res.success("Appointment list", await queryHelper(Appointment, query));
+});
+
+export const handleGetAppointmentById = handleAsyncHttp(async (req, res) => {
+    const { populate } = getSearchMaterials({
+        queryModel: Appointment,
+        query: req.query,
+    });
+    const appointment = await Appointment.findById(req.params.id, null, {
+        populate,
+    });
+    res.success("Appointment", appointment);
 });
