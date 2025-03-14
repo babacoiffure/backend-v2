@@ -32,7 +32,7 @@ export const acceptAppointmentById = async (id: string) => {
     await appointment.save();
 
     const nList = await UserNotification.find({
-        "data._id": appointment._id.toString(),
+        "data._id": appointment._id,
     });
     for (let i of nList) {
         await UserNotification.findByIdAndDelete(i._id.toString());

@@ -5,12 +5,15 @@ import {
     addYears,
     isAfter,
     isBefore,
+    isValid,
+    sub,
 } from "date-fns";
 import SubscriptionPlan from "../database/models/SubscriptionPlan";
 import { createProductAndPrice } from "../libraries/stripe";
 import { ErrorHandler } from "../middleware/error";
 import { getUserById } from "./user.service";
 import Subscription from "../database/models/Subscription";
+import exp from "constants";
 
 export const createSubscriptionPlan = async (data: {
     name: string;
@@ -69,41 +72,36 @@ export const giveSubscriptionToUser = async (
 };
 
 export const checkHasValidSubscription = async (userId: string) => {
-    const subscription = await Subscription.findOne(
+    const activeSubs = await Subscription.findOne(
         {
-            isActive: true,
             userId,
+            status: "Active",
         },
         null,
         { populate: ["paymentIntentId", "subscriptionPlanId"] }
-    );
-    if (!subscription) {
-        return {
-            subscription,
-        };
-    }
+    ).sort({ expireAt: -1 });
 
-    const isPaymentSucceed =
-        ((subscription.paymentIntentId as any).status as string) ===
-        "succeeded";
-    const isExpired = isAfter(Date.now(), subscription?.expireAt);
     return {
-        isValid: isPaymentSucceed && !isExpired,
-        isExpired,
-        subscription,
+        isValid: activeSubs ? true : false,
+        subscription: activeSubs ?? null,
     };
 };
 
-export const getUserSubscription = async (
-    userId: string,
-    throwError = true
-) => {
-    const subs = await Subscription.findOne({ userId }).sort({
-        createdAt: -1,
-    });
-    console.log(!subs, throwError);
-    if (!subs && throwError) {
+export const cancelSubscription = async (userId: string) => {
+    const subs = await checkHasValidSubscription(userId);
+    if (!subs.isValid || !subs.subscription) {
         throw new ErrorHandler("No subscription found for this user", 400);
     }
-    return subs;
+    subs.subscription.renewalStatus = "Disabled";
+    await subs.subscription.save();
+    return subs.subscription;
+};
+export const resumeSubscription = async (userId: string) => {
+    const subs = await checkHasValidSubscription(userId);
+    if (!subs.isValid || !subs.subscription) {
+        throw new ErrorHandler("No subscription found for this user", 400);
+    }
+    subs.subscription.renewalStatus = "Enabled";
+    await subs.subscription.save();
+    return subs.subscription;
 };

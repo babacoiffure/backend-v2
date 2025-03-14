@@ -69,7 +69,9 @@ export const errorMiddleware = (
         new ErrorHandler(`Json Web Token is Expired, Try again `, 400);
     }
 
-    console.log(error);
+    if (serverENV.NODE_ENV === "development") {
+        console.log(error); // Log the error
+    }
 
     _res.status(error.statusCode).json({
         success: false,

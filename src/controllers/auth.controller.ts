@@ -19,6 +19,7 @@ import {
     verifyRefreshToken,
 } from "../utils/jwt";
 import { generateOTP } from "../utils/utils";
+import { checkHasValidSubscription } from "../service/subscription.service";
 
 configDotenv();
 
@@ -124,14 +125,21 @@ export const handleChangeEmailRequest = handleAsyncHttp(async (req, res) => {
     );
 });
 export const handleCheckAuth = handleAsyncHttp(async (req, res) => {
-    res.success("Auth details", {
+    const user = await User.findById(req.headers?.userId);
+    const data: any = {
         isAuthValid: Boolean(req.headers?.userId),
         userId: req.headers?.userId,
-        user: await User.findById(req.headers?.userId),
+        user,
         userType: req.headers?.userType,
         accessToken: req.cookies["accessToken"],
         refreshToken: req.cookies["refreshToken"],
-    });
+    };
+    if (user?.userType === "Provider") {
+        data.subscription = user?._id
+            ? await checkHasValidSubscription(user?._id.toString())
+            : null;
+    }
+    res.success("Auth details", data);
 });
 export const handleChangeEmailRequestVerify = handleAsyncHttp(
     async (req, res) => {

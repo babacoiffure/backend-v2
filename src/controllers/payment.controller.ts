@@ -13,6 +13,7 @@ import { handleAsyncHttp } from "../middleware/controller";
 import { acceptAppointmentById } from "../service/appointment.service";
 import { getPaymentById } from "../service/payment.service";
 import {
+    checkHasValidSubscription,
     getSubscriptionById,
     giveSubscriptionToUser,
 } from "../service/subscription.service";
@@ -188,6 +189,10 @@ export const handleSuccessfulAppointmentPayment = handleAsyncHttp(
 export const handleCreateSubscriptionPlanPaymentIntent = handleAsyncHttp(
     async (req, res) => {
         const { subscriptionId, currency, userId } = req.body;
+        const userSubscription = await checkHasValidSubscription(userId);
+        if (userSubscription.isValid) {
+            return res.error("User already has a valid subscription", 400);
+        }
         const subscriptionPlan = await getSubscriptionById(subscriptionId); //subPlan
         const price = (subscriptionPlan.price?.amount as number) * 100;
         const intent = await generatePaymentIntent(price, currency);
