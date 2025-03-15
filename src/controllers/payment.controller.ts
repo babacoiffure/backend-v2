@@ -30,7 +30,7 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
                 "providerId",
                 "clientId",
                 "providerServiceId",
-                "PaymentId",
+                "paymentId",
             ],
         });
         if (!appointment) {
