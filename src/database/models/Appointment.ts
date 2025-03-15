@@ -1,7 +1,4 @@
 import mongoose, { model, Schema } from "mongoose";
-import User from "./User";
-import ProviderService from "./ProviderService";
-import ProviderSchedule from "./ProviderSchedule";
 
 // Insert table fields here
 const fields = {
