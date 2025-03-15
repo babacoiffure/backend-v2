@@ -88,7 +88,8 @@ export const getAppointmentPaymentAmount = async (appointmentId: string) => {
         // Pre-deposit
         if (!appointment.paymentId) {
             // if pre-deposit payment not created
-            payAmount = hasAddon ? 20 : totalAmount * 0.2;
+            payAmount =
+                hasSizedBasedAddon && !hasAddon ? 20 : totalAmount * 0.2; // whatever price is, 20 euro for only handle length
             dueAmount = totalAmount - payAmount;
         } else {
             // if pre-deposit payment created and due amount is there
