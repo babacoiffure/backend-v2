@@ -54,7 +54,7 @@ export const acceptAppointmentById = async (id: string) => {
 
 export const getAppointmentPaymentAmount = async (appointmentId: string) => {
     let appointment = await Appointment.findById(appointmentId, null, {
-        populate: ["providerId", "clientId", "providerServiceId", "PaymentId"],
+        populate: ["providerId", "clientId", "providerServiceId", "paymentId"],
     });
     if (!appointment) {
         throw new ErrorHandler("invalid appointment id", 400);
