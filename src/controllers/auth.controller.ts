@@ -41,6 +41,12 @@ export const handleCredentialSignUp = handleAsyncHttp(async (req, res) => {
         email,
         password: await bcrypt.hash(password, 10),
         userType,
+        providerSettings:
+            userType === "Provider"
+                ? {
+                      appointmentMode: "Pre-deposit",
+                  }
+                : undefined,
         uid: await generateUniqueUID(name),
     });
     const OTP = generateOTP(5);

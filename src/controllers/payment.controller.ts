@@ -10,141 +10,63 @@ import {
     stripe,
 } from "../libraries/stripe";
 import { handleAsyncHttp } from "../middleware/controller";
-import { acceptAppointmentById } from "../service/appointment.service";
+import {
+    acceptAppointmentById,
+    getAppointmentPaymentAmount,
+} from "../service/appointment.service";
 import { getPaymentById } from "../service/payment.service";
 import {
     checkHasValidSubscription,
     getSubscriptionById,
     giveSubscriptionToUser,
 } from "../service/subscription.service";
-import { getPercentage } from "../utils/helper";
 
 export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
     async (req, res) => {
         const { appointmentId, currency } = req.body;
 
-        const appointment = await Appointment.findById(appointmentId);
+        const appointment = await Appointment.findById(appointmentId, null, {
+            populate: [
+                "providerId",
+                "clientId",
+                "providerServiceId",
+                "paymentId",
+            ],
+        });
         if (!appointment) {
             return res.error("Appointment not found", 400);
         }
-        const provider = await User.findById(appointment.providerId);
-        const providerService = await ProviderService.findById(
-            appointment.providerServiceId
-        );
-        const selectedAddons = appointment.selectedAddons;
-        const selectedSizeBasedAddons = appointment.selectedSizeBasedAddons;
-        let isAddonSelected =
-            selectedAddons?.length > 0 || selectedSizeBasedAddons?.length > 0;
 
-        if (!provider || !providerService) {
-            return res.error("Resource not found", 400);
-        }
+        const { totalAmount, dueAmount, payAmount } =
+            await getAppointmentPaymentAmount(appointmentId);
 
-        const appointmentPaymentMode = appointment.paymentMode;
-
-        const getAppointmentTotalAmount = () => {
-            let totalAmount = providerService.price;
-            let isAddonSelected =
-                selectedAddons?.length > 0 ||
-                selectedSizeBasedAddons?.length > 0;
-
-            if (isAddonSelected) {
-                selectedAddons.forEach((x: any) => {
-                    totalAmount += x.price;
-                });
-                selectedSizeBasedAddons.forEach((x: any) => {
-                    totalAmount += x.price;
-                });
-            }
-            return totalAmount;
-        };
-
-        let totalAmount = getAppointmentTotalAmount();
-        let payAmount = 0;
-
-        let payment = await Payment.findOne({ appointmentId });
+        let payment: any = appointment.paymentId;
 
         if (!payment) {
-            // pre-deposit
-            if (appointmentPaymentMode === "Pre-deposit") {
-                payAmount = isAddonSelected
-                    ? 20
-                    : getPercentage(20, totalAmount);
-            } else {
-                payAmount = totalAmount;
-            }
-
             payment = await Payment.create({
                 appointmentId,
                 currency,
                 totalAmount,
-                providerServiceId: providerService._id,
-                dueAmount: totalAmount - payAmount,
+                providerServiceId: appointment.providerServiceId?._id,
+                dueAmount,
                 paymentMode:
-                    appointmentPaymentMode === "Pre-deposit"
+                    appointment.paymentMode === "Pre-deposit"
                         ? "Pre-deposit"
                         : "Regular",
             });
             appointment.paymentId = payment._id;
             await appointment.save();
-            const intent = await generatePaymentIntent(
-                payAmount * 100,
-                currency,
-                {
-                    // transfer_data: {
-                    //     destination: provider.providerSettings?.stripeAccountId,
-                    // },
-                }
-            );
-            return res.success("Payment intent created", {
-                clientSecret: intent.client_secret,
-                payment,
-                intentId: intent.id,
-            });
-        } else if (payment.status === "Paid") {
-            return res.error("Already paid", 400);
-        } else if (payment.status === "Ongoing") {
-            // pre-deposit 2nd phase
-            payAmount = payment.dueAmount;
-            const intent = await generatePaymentIntent(
-                payAmount * 100,
-                currency,
-                {
-                    // transfer_data: {
-                    //     destination: provider.providerSettings?.stripeAccountId,
-                    // },
-                }
-            );
-            return res.success("Payment intent created", {
-                clientSecret: intent.client_secret,
-                payment,
-                intentId: intent.id,
-            });
-        } else {
-            if (appointmentPaymentMode === "Pre-deposit") {
-                payAmount = isAddonSelected
-                    ? 20
-                    : getPercentage(20, totalAmount);
-            } else {
-                payAmount = totalAmount;
-            }
-
-            // has payment intent but that was not successful
-            const intent = await generatePaymentIntent(
-                payAmount * 100,
-                currency,
-                {
-                    // transfer_data: {
-                    //     destination: provider.providerSettings?.stripeAccountId,
-                    // },
-                }
-            );
-            return res.success("Payment intent created", {
-                clientSecret: intent.client_secret,
-                payment,
-                intentId: intent.id,
-            });
         }
+        const intent = await generatePaymentIntent(payAmount * 100, currency, {
+            // transfer_data: {
+            //     destination: provider.providerSettings?.stripeAccountId,
+            // },
+        });
+        return res.success("Payment intent created", {
+            clientSecret: intent.client_secret,
+            payment,
+            intentId: intent.id,
+        });
     }
 );
 
