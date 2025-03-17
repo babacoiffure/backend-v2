@@ -13,8 +13,8 @@ import { errorMiddleware, handleNotFound } from "./middleware/error";
 import rootRouter from "./router/http-router";
 import { wsManager } from "./router/socket-manager";
 
-// clear console
-console.clear();
+// // clear console
+// console.clear();
 
 export const server = express();
 const httpServer = createServer(server);
