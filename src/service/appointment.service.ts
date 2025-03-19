@@ -1,4 +1,3 @@
-import { ObjectId, Types } from "mongoose";
 import Appointment from "../database/models/Appointment";
 import ProviderSchedule from "../database/models/ProviderSchedule";
 import UserNotification from "../database/models/UserNotification";
@@ -65,7 +64,6 @@ export const getAppointmentPaymentAmount = async (appointmentId: string) => {
     let payAmount = 0;
     let dueAmount = 0;
 
-    
     const hasSizedBasedAddon = appointment.selectedSizeBasedAddons?.length > 0;
     const hasAddon = appointment.selectedAddons?.length > 0;
 
@@ -86,14 +84,14 @@ export const getAppointmentPaymentAmount = async (appointmentId: string) => {
 
     // Payment Mode :: Taking it from appointment because if provider change the payment mode then it should not be reflected in previous appointment
     const appointmentPaymentMode = appointment.paymentMode;
-    const providerService= (appointment.providerServiceId as any)
-    const isTwentyEuroRequiredForPredeposit = providerService.sizeBasedAddons?.length>0 && providerService.addons?.length ==0
+    const providerService = appointment.providerServiceId as any;
+
     if (appointmentPaymentMode === "Pre-deposit") {
         // Pre-deposit
         if (!appointment.paymentId) {
-            // if pre-deposit payment not created
-            payAmount =
-                isTwentyEuroRequiredForPredeposit? 20 : totalAmount * 0.2; // whatever price is, 20 euro for only handle length
+            payAmount = providerService.isSizeBasedAddonsActive
+                ? 20
+                : totalAmount * 0.2; // whatever price is, 20 euro for only handle length
             dueAmount = totalAmount - payAmount;
         } else {
             // if pre-deposit payment created and due amount is there
