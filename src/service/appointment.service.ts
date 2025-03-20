@@ -1,6 +1,7 @@
-import { ObjectId, Types } from "mongoose";
 import Appointment from "../database/models/Appointment";
+import Payment from "../database/models/Payment";
 import ProviderSchedule from "../database/models/ProviderSchedule";
+import ProviderService from "../database/models/ProviderService";
 import UserNotification from "../database/models/UserNotification";
 import { ErrorHandler } from "../middleware/error";
 import { sendUserNotification } from "./notification.service";
@@ -54,10 +55,17 @@ export const acceptAppointmentById = async (id: string) => {
 
 export const getAppointmentPaymentAmount = async (appointmentId: string) => {
     let appointment = await Appointment.findById(appointmentId, null, {
-        populate: ["providerId", "clientId", "providerServiceId", "paymentId"],
+        populate: ["providerId", "clientId"],
     });
     if (!appointment) {
         throw new ErrorHandler("invalid appointment id", 400);
+    }
+
+    const providerService = await ProviderService.findById(
+        appointment.providerServiceId
+    );
+    if (!providerService) {
+        throw new ErrorHandler("Invalid service id");
     }
 
     // Amount states
@@ -65,19 +73,22 @@ export const getAppointmentPaymentAmount = async (appointmentId: string) => {
     let payAmount = 0;
     let dueAmount = 0;
 
-    
-    const hasSizedBasedAddon = appointment.selectedSizeBasedAddons?.length > 0;
-    const hasAddon = appointment.selectedAddons?.length > 0;
+    const sizedBasedAddonsActive = providerService.isSizeBasedAddonsActive;
+    const hasSelectedAddons = appointment.selectedAddons?.length > 0;
+    console.log(
+        `isSizedBasedAddonsActive:${sizedBasedAddonsActive}`,
+        `SelectedSizedBasedAddons: ${appointment.selectedSizeBasedAddons}`
+    );
 
     // base service amount
-    if (hasSizedBasedAddon) {
+    if (sizedBasedAddonsActive) {
         totalAmount = appointment.selectedSizeBasedAddons[0].price;
     } else {
-        totalAmount = (appointment.providerServiceId as any).price;
+        totalAmount = providerService.price;
     }
 
     // extra service amount
-    if (hasAddon) {
+    if (hasSelectedAddons) {
         appointment.selectedAddons.forEach((x: any) => {
             totalAmount += x.price;
         });
@@ -86,25 +97,32 @@ export const getAppointmentPaymentAmount = async (appointmentId: string) => {
 
     // Payment Mode :: Taking it from appointment because if provider change the payment mode then it should not be reflected in previous appointment
     const appointmentPaymentMode = appointment.paymentMode;
-    const providerService= (appointment.providerServiceId as any)
-    const isTwentyEuroRequiredForPredeposit = providerService.sizeBasedAddons?.length>0 && providerService.addons?.length ==0
+    let payment;
+    if (appointment.paymentId) {
+        payment = await Payment.findById(appointment.paymentId);
+    }
+
     if (appointmentPaymentMode === "Pre-deposit") {
         // Pre-deposit
-        if (!appointment.paymentId) {
-            // if pre-deposit payment not created
-            payAmount =
-                isTwentyEuroRequiredForPredeposit? 20 : totalAmount * 0.2; // whatever price is, 20 euro for only handle length
+        if (!payment || payment.status === "Pending") {
+            payAmount = providerService.isSizeBasedAddonsActive
+                ? 20
+                : totalAmount * 0.2; // whatever price is, 20 euro for only handle length
             dueAmount = totalAmount - payAmount;
-        } else {
+        } else if (payment.status === "Ongoing") {
             // if pre-deposit payment created and due amount is there
             payAmount = (appointment.paymentId as any).dueAmount;
             dueAmount = dueAmount - payAmount;
+        } else {
+            throw new Error("Already paid");
         }
     } else {
         // Regular
         payAmount = totalAmount;
         dueAmount = totalAmount - payAmount;
     }
+
+    console.log(totalAmount, payAmount, dueAmount);
 
     return { totalAmount, payAmount, dueAmount };
 };
