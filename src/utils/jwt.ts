@@ -1,12 +1,18 @@
 import jwt from "jsonwebtoken";
 import { serverENV } from "../env-config";
-import { server } from "../server";
 
 // Token schema
 type TokenSchema = {
 	userId: string;
 	userType: string;
 };
+
+/**
+ * Decodes a base64 string to its original format
+ */
+export function decodeBase64(base64String: string): string {
+	return Buffer.from(base64String, 'base64').toString('utf-8');
+}
 
 export function signJwt(
 	object: Object,
@@ -47,19 +53,24 @@ export const generateAccessToken = ({
 	userId: string;
 	userType: "Client" | "Provider";
 }) => {
+	const accessTokenPrivateKey = decodeBase64(serverENV.ACCESS_TOKEN_PRIVATE_KEY);
+
 	return signJwt(
 		{
 			userId,
 			userType,
 		},
-		serverENV.ACCESS_TOKEN_PRIVATE_KEY,
+		accessTokenPrivateKey,
 		{
 			expiresIn: serverENV.ACCESS_TOKEN_EXPIRE_IN as any,
 		}
 	);
 };
-export const verifyAccessToken = (token: string) =>
-	verifyJwt<TokenSchema>(token, serverENV.ACCESS_TOKEN_PUBLIC_KEY);
+
+export const verifyAccessToken = (token: string) => {
+	const accessTokenPublicKey = decodeBase64(serverENV.ACCESS_TOKEN_PUBLIC_KEY);
+	return verifyJwt<TokenSchema>(token, accessTokenPublicKey);
+};
 
 // Refresh token
 export const generateRefreshToken = ({ userId, userType }: TokenSchema) => {
@@ -68,16 +79,21 @@ export const generateRefreshToken = ({ userId, userType }: TokenSchema) => {
 		return ""
 	}
 
+	const refreshTokenPrivateKey = decodeBase64(serverENV.REFRESH_TOKEN_PRIVATE_KEY);
+
 	return signJwt(
 		{
 			userId,
 			userType,
 		},
-		serverENV.REFRESH_TOKEN_PRIVATE_KEY,
+		refreshTokenPrivateKey,
 		{
 			expiresIn: serverENV.REFRESH_TOKEN_EXPIRE_IN as any,
 		}
 	);
 };
-export const verifyRefreshToken = (token: string) =>
-	verifyJwt<TokenSchema>(token, serverENV.REFRESH_TOKEN_PUBLIC_KEY);
+
+export const verifyRefreshToken = (token: string) => {
+	const refreshTokenPublicKey = decodeBase64(serverENV.REFRESH_TOKEN_PUBLIC_KEY);
+	return verifyJwt<TokenSchema>(token, refreshTokenPublicKey);
+};
