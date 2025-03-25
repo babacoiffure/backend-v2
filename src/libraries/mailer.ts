@@ -1,13 +1,16 @@
 import env from "dotenv";
 import * as nodemailer from "nodemailer";
+import { serverENV } from "../env-config";
+
 env.config();
+
 const transporter = nodemailer.createTransport({
-	host: "smtp.hostinger.com",
+	host: "smtp.tem.scaleway.com",
 	port: 465,
 	secure: true, // true for 465, false for other ports
 	auth: {
-		user: process.env.HOSTINGER_EMAIL,
-		pass: process.env.HOSTINGER_PASSWORD,
+		user: serverENV.EMAIL_USERNAME,
+		pass: serverENV.EMAIL_PASSWORD_,
 	},
 	tls: {
 		// Do not fail on invalid certs
