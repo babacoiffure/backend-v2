@@ -23,8 +23,8 @@ export const serverENV = cleanEnv(process.env, {
 	Database_URI: str({ default: "mongodb://127.0.0.1:27017/saloon_db" }),
 
 	// Nodemailer
-	NODEMAILER_GMAIL_ID: str(),
-	NODEMAILER_GMAIL_APP_PASSWORD: str(),
+	HOSTINGER_EMAIL: str(),
+	HOSTINGER_PASSWORD: str(),
 
 	// cloudinary
 	CLOUDINARY_CLOUD_NAME: str(),
