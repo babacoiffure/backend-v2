@@ -196,7 +196,7 @@ export const handleVerifyEmailWithOTP = handleAsyncHttp(async (req, res) => {
 
 	user.emailVerified = true;
 	user.OTP = "";
-	await user.save().catch(()=>{})
+	await user.save().catch(() => { })
 
 	const _accessToken = generateAccessToken({
 		userId: user._id.toString(),
