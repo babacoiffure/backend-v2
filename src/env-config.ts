@@ -24,7 +24,7 @@ export const serverENV = cleanEnv(process.env, {
 
 	// Nodemailer
 	EMAIL_USERNAME: str(),
-	EMAIL_PASSWORD_: str(),
+	EMAIL_PASSWORD: str(),
 
 	// cloudinary
 	CLOUDINARY_CLOUD_NAME: str(),
