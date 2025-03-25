@@ -25,89 +25,100 @@ configDotenv();
 
 export const handleCredentialSignUp = handleAsyncHttp(async (req, res) => {
 	const { name, email, userType, password } = req.body;
-	const isExists = await User.findOne({
-		email,
-		userType,
-	});
-	if (isExists && isExists.emailVerified === false) {
-		await User.findByIdAndDelete(isExists._id);
-	}
-	if (isExists && isExists.emailVerified) {
-		return res.error("Already have an verified account.");
+
+	if (!name || !email || !userType || !password) {
+		console.error("Missing required fields in signup request");
+		return res.error("Please provide all required fields");
 	}
 
-	const user = await User.create({
-		name,
-		email,
-		password: await bcrypt.hash(password, 10),
-		userType,
-		providerSettings:
-			userType === "Provider"
-				? {
-					appointmentMode: "Pre-deposit",
-				}
-				: undefined,
-		uid: await generateUniqueUID(name),
-	});
-	const OTP = generateOTP(5);
+	try {
+		const isExists = await User.findOne({
+			email,
+			userType,
+		});
 
-	const mailOptions = {
-		to: email,
-		subject: "Email verification OTP",
-		html: `<div>
-        <p>Your <b>${serverConfigs.app.name}</b> Email verification OTP is</p>
-        <br>
-        <h1>${OTP}</h1>
-        </div>`,
-	};
-	await sendEmail(mailOptions);
-	user.OTP = OTP;
-	await user.save();
-	res.success(
-		"User signup successful!\nWe send a mail with OTP to verify your mail.Please verify your mail before logging in."
-	);
+		if (isExists) {
+			if (!isExists.emailVerified) {
+				await User.findByIdAndDelete(isExists._id);
+				console.log(`Deleted unverified user account: ${isExists._id}`);
+			} else {
+				console.error(`User already exists with verified email: ${email}`);
+				return res.error("Already have a verified account.");
+			}
+		}
+
+		const user = await User.create({
+			name,
+			email,
+			password: await bcrypt.hash(password, 10),
+			userType,
+			providerSettings: userType === "Provider" ? {
+				appointmentMode: "Pre-deposit",
+			} : undefined,
+			uid: await generateUniqueUID(name),
+		});
+
+		const OTP = generateOTP(5);
+
+		const mailOptions = {
+			to: email,
+			subject: "Email verification OTP",
+			html: `<div>
+				<p>Your <b>${serverConfigs.app.name}</b> Email verification OTP is</p>
+				<br>
+				<h1>${OTP}</h1>
+				</div>`,
+		};
+
+		try {
+			await sendEmail(mailOptions);
+		} catch (error) {
+			console.error("Failed to send verification email:", error);
+			await User.findByIdAndDelete(user._id);
+			return res.error("Failed to send verification email. Please try again.");
+		}
+
+		user.OTP = OTP;
+		await user.save();
+
+		return res.success(
+			"User signup successful!\nWe send a mail with OTP to verify your mail. Please verify your mail before logging in."
+		);
+
+	} catch (error) {
+		console.error("Error during user signup:", error);
+		return res.error("Failed to create user account");
+	}
 });
 
 export const handleCredentialSignIn = handleAsyncHttp(async (req, res) => {
 	const { email, password, userType } = req.body;
-
-	// Check if required fields are present
-	if (!email || !password || !userType) {
-		console.error("[Auth] Sign in failed: Missing required fields");
-		return res.error("Email, password and user type are required", 400);
-	}
-
 	const user = await User.findOne({ email, userType }).select([
 		"+password",
 		"+otp",
 	]);
-
 	if (!user) {
-		console.error("[Auth] Sign in failed: User not found", { email, userType });
 		return res.error("Your email/password is incorrect", 400);
 	}
 
 	if (!user.emailVerified) {
-		console.error("[Auth] Sign in failed: Email not verified", { email });
 		return res.error("Please verify your mail first!", 400);
 	}
 
 	const isValid = await bcrypt.compare(password, user.password);
 
 	if (!isValid) {
-		console.error("[Auth] Sign in failed: Invalid password", { email });
 		return res.error("email/password incorrect", 400);
 	}
 
 	const _accessToken = generateAccessToken({
 		userId: user._id.toString(),
-		userType: user.userType.toString(),
+		userType: user.userType.toString() as "Client" | "Provider",
 	});
 	const _refreshToken = generateRefreshToken({
 		userId: user._id.toString(),
 		userType: user.userType.toString(),
 	});
-
 	res.default.cookie("accessToken", _accessToken, {
 		httpOnly: true,
 		secure: serverENV.NODE_ENV === "production",
@@ -118,8 +129,6 @@ export const handleCredentialSignIn = handleAsyncHttp(async (req, res) => {
 		secure: serverENV.NODE_ENV === "production",
 		sameSite: "strict",
 	});
-
-	console.log("[Auth] Sign in successful", { userId: user._id, userType });
 	res.success("Login successful", await User.findById(user._id), 200);
 });
 
@@ -182,6 +191,19 @@ export const handleChangeEmailRequestVerify = handleAsyncHttp(
 
 export const handleVerifyEmailWithOTP = handleAsyncHttp(async (req, res) => {
 	const { OTP, email, userType } = req.body;
+
+	if (!OTP) {
+		console.error("Missing OTP")
+	}
+
+	if (!email) {
+		console.error("Missing email")
+	}
+
+	if (!userType) {
+		console.error("Missing userType")
+	}
+
 	const user = await User.findOne({
 		email,
 		userType,
@@ -193,14 +215,15 @@ export const handleVerifyEmailWithOTP = handleAsyncHttp(async (req, res) => {
 	if (!user.OTP == OTP) {
 		return res.error("Wrong OTP", 400);
 	}
-
 	user.emailVerified = true;
 	user.OTP = "";
-	await user.save().catch(() => { })
+	await user.save();
+
 
 	const _accessToken = generateAccessToken({
 		userId: user._id.toString(),
-		userType: user.userType.toString(),
+		userType: user.userType.toString() as "Client" | "Provider"
+
 	});
 	const _refreshToken = generateRefreshToken({
 		userId: user._id.toString(),
@@ -267,7 +290,7 @@ export const handleReissueToken = handleAsyncHttp(async (req, res) => {
 	}
 	const _accessToken = generateAccessToken({
 		userId: decoded.userId.toString(),
-		userType: decoded.userType.toString(),
+		userType: decoded.userType.toString() as "Provider" | "Client",
 	});
 	const _refreshToken = generateRefreshToken({
 		userId: decoded.userId.toString(),

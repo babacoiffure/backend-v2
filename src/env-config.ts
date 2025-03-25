@@ -15,6 +15,11 @@ export const serverENV = cleanEnv(process.env, {
 	PORT: num({ default: 9000 }),
 
 	// Database
+	DATABASE_USERNAME: str(),
+	DATABASE_PASSWORD: str(),
+	DATABASE_REGION: str(),
+	DATABASE_INSTANCE_ID: str(),
+	MONGODB_CA_CERT: str({ default: "" }),
 	Database_URI: str({ default: "mongodb://127.0.0.1:27017/saloon_db" }),
 
 	// Nodemailer
