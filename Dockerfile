@@ -12,7 +12,7 @@ COPY package*.json ./
 
 # Install production dependencies
 FROM base AS deps
-RUN npm install --omit=dev
+RUN npm install --production
 
 # Build stage
 FROM base AS builder
@@ -20,8 +20,8 @@ FROM base AS builder
 RUN npm install
 # Copy source files
 COPY . .
-# Build TypeScript to JavaScript
-RUN npm run build
+# Check if TypeScript compiler generates the expected output
+RUN npm run build && ls -la dist/src && test -f dist/src/server.js
 
 # Production stage
 FROM node:lts-alpine AS production
@@ -38,6 +38,9 @@ COPY package.json ./
 
 # Set environment to production
 ENV NODE_ENV=production
+
+# Verify dist/src/server.js exists (debugging step)
+RUN ls -la dist/src && test -f dist/src/server.js
 
 # Expose the port your app runs on
 EXPOSE 3000
