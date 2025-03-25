@@ -1,7 +1,10 @@
 import { configDotenv } from "dotenv";
 import { cleanEnv, num, str } from "envalid";
 
-configDotenv();
+// Only load .env in development/test
+if (process.env.NODE_ENV !== 'production') {
+	configDotenv();
+}
 
 export const serverENV = cleanEnv(process.env, {
 	domain: str({ default: "http://localhost:9000" }),
@@ -17,6 +20,7 @@ export const serverENV = cleanEnv(process.env, {
 	DATABASE_REGION: str(),
 	DATABASE_INSTANCE_ID: str(),
 	MONGODB_CA_CERT: str({ default: "" }),
+	Database_URI: str({ default: "mongodb://127.0.0.1:27017/saloon_db" }),
 
 	// Nodemailer
 	NODEMAILER_GMAIL_ID: str(),
