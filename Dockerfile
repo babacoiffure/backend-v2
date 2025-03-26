@@ -7,21 +7,20 @@ WORKDIR /app
 # Install global dependencies
 RUN npm install -g typescript ts-node
 
-# Copy package files first (for better layer caching)
-COPY package.json package-lock.json* ./
+# Copy package files
+COPY package*.json ./
 
 # Install production dependencies
 FROM base AS deps
-RUN npm ci --production
+RUN npm install --production
 
 # Build stage
 FROM base AS builder
-# Install all dependencies for building (using ci for faster and more reliable installs)
-RUN npm ci
-# Copy only necessary source files (exclude node_modules, tests, etc.)
-COPY tsconfig.json ./
-COPY src/ ./src/
-# Build the application
+# Install all dependencies for building
+RUN npm install
+# Copy source files
+COPY . .
+# Check if TypeScript compiler generates the expected output
 RUN npm run build && ls -la dist/src && test -f dist/src/server.js
 
 # Production stage
