@@ -18,11 +18,11 @@ RUN npm ci --production
 FROM base AS builder
 # Install all dependencies for building (using ci for faster and more reliable installs)
 RUN npm ci
-# Copy necessary files for the build
+# Copy only necessary source files (exclude node_modules, tests, etc.)
 COPY tsconfig.json ./
 COPY src/ ./src/
 # Build the application
-RUN npm run build && mkdir -p dist/src && ls -la dist
+RUN npm run build && ls -la dist/src && test -f dist/src/server.js
 
 # Production stage
 FROM node:lts-alpine AS production
@@ -40,6 +40,9 @@ COPY package.json ./
 # Set environment to production
 ENV NODE_ENV=production
 
+# Verify dist/src/server.js exists (debugging step)
+RUN ls -la dist/src && test -f dist/src/server.js
+
 # Expose the port your app runs on
 EXPOSE 3000
 
@@ -48,4 +51,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 	CMD node -e "require('http').get('http://localhost:3000/health-check', (res) => { if (res.statusCode !== 200) throw new Error('Health check failed'); })" || exit 1
 
 # Run the application
-CMD ["node", "dist/src/server.js"]
+CMD ["npm", "start"]

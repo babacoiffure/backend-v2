@@ -32,6 +32,9 @@ logs
 tmp
 temp
 
+# Build output
+dist
+
 # Other
 .DS_Store
 Thumbs.db 

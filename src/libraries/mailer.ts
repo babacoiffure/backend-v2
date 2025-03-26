@@ -18,11 +18,9 @@ const transporter = nodemailer.createTransport({
 	},
 });
 export const sendEmail = async ({ to, subject, html, text }: any) => {
-	if (!serverENV.EMAIL_USERNAME) return console.error("!serverENV.EMAIL_USERNAME")
-	if (!serverENV.EMAIL_PASSWORD) return console.error("!serverENV.EMAIL_PASSWORD")
 	try {
 		const info = await transporter.sendMail({
-			from: "no-reply@babacoiffure.com",
+			from: process.env.HOSTINGER_EMAIL,
 			to,
 			subject,
 			text,
