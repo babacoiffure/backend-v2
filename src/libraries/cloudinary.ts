@@ -19,6 +19,20 @@ export const uploadImage = async (imagePath: string, folderName = "Photos") => {
     return data;
 };
 
+export const uploadImageBuffer = async (buffer: Buffer, originalFilename: string, folderName = "Photos") => {
+    // Create a data URI from the buffer for Cloudinary to process
+    const fileType = originalFilename.split('.').pop()?.toLowerCase();
+    const dataURI = `data:image/${fileType};base64,${buffer.toString('base64')}`;
+    
+    // Upload the buffer to Cloudinary
+    const data = await cloudinary.uploader.upload(dataURI, {
+        folder: `${folderName}-${serverConfigs.app.name}`,
+        filename_override: originalFilename,
+    });
+    
+    return data;
+};
+
 export const removeFile = (filePath: string) => {
     // Check if the file exists
     if (fs.existsSync(filePath)) {

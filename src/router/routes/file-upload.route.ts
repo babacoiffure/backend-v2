@@ -1,20 +1,13 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
-import { destroyImage, uploadImage } from "../../libraries/cloudinary";
+import { destroyImage, uploadImageBuffer } from "../../libraries/cloudinary";
 import { handleAsyncHttp } from "../../middleware/controller";
 
 export const fileUploadRouter = Router();
 
-// Set up storage engine with multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.resolve(__dirname, "..", "..", "..", "uploads")); // Specify the destination folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "_" + file.originalname); // Append the original extension
-  },
-});
+// Use memory storage for multer to avoid writing to disk
+const storage = multer.memoryStorage();
 
 // Initialize upload variable with multer
 const upload = multer({
@@ -49,8 +42,8 @@ fileUploadRouter.post(
   handleAsyncHttp(async (req, res) => {
     console.info("Starting file upload process...");
 
-    const multiple = (req.files as Record<string, [any]>)?.multiple;
-    const single = (req.files as Record<string, [any]>)?.single?.[0];
+    const multiple = (req.files as Record<string, Express.Multer.File[]>)?.multiple;
+    const single = (req.files as Record<string, Express.Multer.File[]>)?.single?.[0];
 
     if (!multiple && !single) {
       console.error("No files provided for upload");
@@ -67,7 +60,10 @@ fileUploadRouter.post(
       try {
         for (let file of multiple) {
           console.info(`Uploading file: ${file.originalname}`);
-          const { public_id, secure_url } = await uploadImage(file.path);
+          const { public_id, secure_url } = await uploadImageBuffer(
+            file.buffer,
+            file.originalname
+          );
           uploads.multiple.push({
             publicId: public_id,
             secureURL: secure_url,
@@ -82,8 +78,9 @@ fileUploadRouter.post(
     if (single) {
       console.info(`Processing single file: ${single.originalname}`);
       try {
-        const { public_id, secure_url } = await uploadImage(
-          single.path,
+        const { public_id, secure_url } = await uploadImageBuffer(
+          single.buffer,
+          single.originalname,
           "service_images"
         );
         console.info(`Single file uploaded with ID: ${public_id}`);
