@@ -57,7 +57,7 @@ export const handleCreateAppointmentPaymentIntent = handleAsyncHttp(
 			appointment.paymentId = payment._id;
 			await appointment.save();
 		}
-		const intent = await generatePaymentIntent(payAmount * 100, currency, {
+		const intent = await generatePaymentIntent(Math.round(payAmount * 100), currency, {
 			// transfer_data: {
 			//     destination: provider.providerSettings?.stripeAccountId,
 			// },
