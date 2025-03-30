@@ -10,6 +10,8 @@ import { getSearchMaterials } from "../utils/queryHelper";
 import { getDayMatchQuery } from "../utils/utils";
 
 export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
+	console.log(req.body)
+
 	const isExists = await Appointment.findOne({
 		clientId: req.headers.userId,
 		providerId: req.body.providerId,
@@ -125,6 +127,7 @@ export const handleAcceptRescheduleProposalOfAppointment = handleAsyncHttp(
 
 export const handleAcceptAppointment = handleAsyncHttp(async (req, res) => {
 	//TODO: check provider or
+	console.log(req.body)
 	const appointment = await acceptAppointmentById(req.body.id);
 	res.success("Accepted", appointment);
 });
