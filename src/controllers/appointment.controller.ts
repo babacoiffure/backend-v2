@@ -11,9 +11,12 @@ import { getDayMatchQuery } from "../utils/utils";
 
 export const handleMakeAppointment = handleAsyncHttp(async (req, res) => {
 	const isExists = await Appointment.findOne({
+		clientId: req.headers.userId,
+		providerId: req.body.providerId,
 		scheduleDate: getDayMatchQuery(req.body.scheduleDate),
 		timePeriod: req.body.timePeriod,
 	});
+	console.log(isExists);
 	if (isExists?.status === "Accepted") {
 		return res.error("The timePeriod of this schedule already taken.", 400);
 	}
