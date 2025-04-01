@@ -13,9 +13,11 @@ export const acceptAppointmentById = async (id: string) => {
 	if (!appointment) {
 		throw new ErrorHandler("invalid  appointment id", 400);
 	}
-	const schedule = await ProviderSchedule.findById(
-		appointment.providerScheduleId
-	);
+	// console.debug(appointment)
+	const schedule = await ProviderSchedule.findOne({
+		scheduleDate: appointment.scheduleDate,
+		"timePeriods.timePeriod": appointment.timePeriod
+	});
 
 	if (!schedule) {
 		throw new ErrorHandler("Schedule not found", 400);
