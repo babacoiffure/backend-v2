@@ -5,6 +5,7 @@ import ProviderService from "../database/models/ProviderService";
 import User from "../database/models/User";
 import {
 	generatePaymentIntent,
+	getAccountLink,
 	getPaymentIntentStatus,
 	getStatusMessage,
 	stripe,
@@ -186,3 +187,16 @@ export const handleCreateCheckoutSession = handleAsyncHttp(async (req, res) => {
 
 	res.success("success", { sessionId: session.id, url: session.url });
 });
+
+export const handleGetAccountOnboardLink = handleAsyncHttp(async (req, res) => {
+	const { userId } = req.body;
+	const u = await User.findById(userId, null)
+	if (!u) {
+		return res.error("fail to get the user", 400)
+	}
+	if (!u.providerSettings) {
+		return res.error("fail to get the user stripe data", 400)
+	}
+	const onboardLink = await getAccountLink(u.providerSettings.stripeAccountId)
+	res.success("success", { onboardLink: onboardLink.url });
+})
