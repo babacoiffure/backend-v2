@@ -30,16 +30,16 @@ export const createProviderExpressAccount = async (email: string) =>
 		},
 		business_type: "individual",
 		capabilities: {
-			card_payments: {requested: true},
-			transfers: {requested: true},
+			card_payments: { requested: true },
+			transfers: { requested: true },
 		},
 	});
 
 export const getAccountLink = async (accountId: string) =>
 	await stripe.accountLinks.create({
 		account: accountId, // Connected account ID
-		refresh_url: `${serverENV.domain}/reauth`,
-		return_url: `${serverENV.domain}/success`,
+		refresh_url: `https://www.babacoiffure.com/onboarding_refresh`,
+		return_url: `https://www.babacoiffure.com/onboarding_success`,
 		type: "account_onboarding",
 	});
 
