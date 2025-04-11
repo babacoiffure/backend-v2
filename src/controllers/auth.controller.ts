@@ -101,10 +101,6 @@ export const handleCredentialSignIn = handleAsyncHttp(async (req, res) => {
 		return res.error("Your email/password is incorrect", 400);
 	}
 
-	if (!user.emailVerified) {
-		return res.error("Please verify your mail first!", 400);
-	}
-
 	const isValid = await bcrypt.compare(password, user.password);
 
 	if (!isValid) {
