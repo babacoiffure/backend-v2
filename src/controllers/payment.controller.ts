@@ -197,7 +197,7 @@ export const handleGetAccountOnboardLink = handleAsyncHttp(async (req, res) => {
 	if (!u.providerSettings) {
 		return res.error("fail to get the user stripe data", 400)
 	}
-	if (u.userType === "Provider" && u.providerSettings) {
+	if (u.userType === "Provider" && !u.providerSettings.stripeAccountId) {
 		const providerStripeAccount = await createProviderExpressAccount(
 			u.email
 		);

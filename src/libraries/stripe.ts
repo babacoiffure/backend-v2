@@ -20,8 +20,19 @@ export const generatePaymentIntent = async (
 export const createProviderExpressAccount = async (email: string) =>
 	await stripe.accounts.create({
 		type: "express", // Can be 'standard', 'express', or 'custom'
-		country: "US",
+		country: "FR",
 		email,
+		business_profile: {
+			product_description: "Babacoiffure",
+			support_email: "support@babacoiffure.com",
+			support_url: "https://babacoiffure.com/support",
+			mcc: "5999",
+		},
+		business_type: "individual",
+		capabilities: {
+			card_payments: {requested: true},
+			transfers: {requested: true},
+		},
 	});
 
 export const getAccountLink = async (accountId: string) =>
