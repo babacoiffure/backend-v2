@@ -30,4 +30,4 @@ paymentRouter.post(
 
 paymentRouter.post("/create-checkout-session", handleCreateCheckoutSession);
 
-paymentRouter.get("/get-stripe-account-link", handleGetAccountOnboardLink)
+paymentRouter.post("/get-stripe-account-link", handleGetAccountOnboardLink)

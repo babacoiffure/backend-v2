@@ -1,6 +1,7 @@
 import ProviderSchedule from "../database/models/ProviderSchedule";
 import { handleAsyncHttp } from "../middleware/controller";
 import queryHelper from "../utils/query-helper";
+import { isUTCDateString } from "../utils/time";
 import { getDayMatchQuery } from "../utils/utils";
 
 export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
@@ -9,9 +10,14 @@ export const handleSaveProviderSchedule = handleAsyncHttp(async (req, res) => {
 	if (userType !== "Provider") {
 		return res.error("You are not a provider");
 	}
+
+
+	console.log()
+	const inputtedDate = new Date(req.body.scheduleDate)
+	const finalDate = new Date(inputtedDate).setDate(inputtedDate.getUTCDate() + 1)
 	let providerSchedule = await ProviderSchedule.findOne({
 		providerId: userId,
-		scheduleDate: getDayMatchQuery(req.body.scheduleDate),
+		scheduleDate: getDayMatchQuery(finalDate),
 	});
 
 	if (!providerSchedule) {

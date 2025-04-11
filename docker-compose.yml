@@ -4,13 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:9000"
+      - "9000:9000"
     env_file:
       - .env
     environment:
       - NODE_ENV=development
       - DB_HOST=db
-      - DB_PORT=3306
+      - DB_PORT=27017
       - DB_USER=root
       - DB_USERNAME=root
       - DB_PASSWORD=root

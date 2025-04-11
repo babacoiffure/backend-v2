@@ -1,9 +1,9 @@
 import Appointment from "../database/models/Appointment";
 import Payment from "../database/models/Payment";
 import PaymentIntent from "../database/models/PaymentIntent";
-import ProviderService from "../database/models/ProviderService";
 import User from "../database/models/User";
 import {
+	createProviderExpressAccount,
 	generatePaymentIntent,
 	getAccountLink,
 	getPaymentIntentStatus,
@@ -196,6 +196,16 @@ export const handleGetAccountOnboardLink = handleAsyncHttp(async (req, res) => {
 	}
 	if (!u.providerSettings) {
 		return res.error("fail to get the user stripe data", 400)
+	}
+	if (u.userType === "Provider" && u.providerSettings) {
+		const providerStripeAccount = await createProviderExpressAccount(
+			u.email
+		);
+		u.providerSettings.stripeAccountId = providerStripeAccount.id;
+		await u.save();
+	}
+	if (!u.providerSettings.stripeAccountId) {
+		return res.error("fail to get the user stripe account id", 400)
 	}
 	const onboardLink = await getAccountLink(u.providerSettings.stripeAccountId)
 	res.success("success", { onboardLink: onboardLink.url });

@@ -27,6 +27,7 @@
 	"scripts": {
 		"build": "npx tsc",
 		"start": "node dist/src/server.js",
+		"dev:docker": "docker compose up",
 		"dev": "nodemon src/server.ts",
 		"test": "jest",
 		"test:watch": "jest --watch",
